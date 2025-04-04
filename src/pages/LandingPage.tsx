@@ -35,7 +35,7 @@ const LandingPage = () => {
             </li>
             <li className="flex items-start">
               <span className="mr-2">2.</span>
-              <span>Submit anonymous questions for other players</span>
+              <span>Submit anonymous questions to other players</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">3.</span>

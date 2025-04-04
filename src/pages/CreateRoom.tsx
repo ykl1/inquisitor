@@ -1,29 +1,36 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCreateRoom } from '../hooks/useRoom';
 
 const CreateRoom = () => {
-  const navigate = useNavigate();
+  const { createRoom, isLoading, error } = useCreateRoom();
   const [formData, setFormData] = useState({
     playerName: '',
     rounds: 2,
     enableGuessing: true,
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     // TODO: Implement room creation logic with backend
-    const roomCode = 'ABCD123'; // This will come from the backend
-    navigate(`/room/${roomCode}`);
+    await createRoom(
+      formData.playerName,
+      formData.rounds,
+      formData.enableGuessing
+    );
   };
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Create InQuizitor Room</h2>
+          <h2 className="text-3xl font-bold text-gray-900">Create Room</h2>
           <p className="mt-2 text-gray-600">Set up your game room and invite friends</p>
         </div>
-
+        {error && (
+          <div className="mb-4 p-4 text-sm text-red-700 bg-red-100 rounded-lg">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label htmlFor="playerName" className="block text-sm font-medium text-gray-700">
@@ -72,9 +79,10 @@ const CreateRoom = () => {
 
           <button
             type="submit"
+            disabled={isLoading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Create Room
+            {isLoading ? 'Creating Room...' : 'Create Room'}
           </button>
         </form>
       </div>
