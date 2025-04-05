@@ -27,6 +27,7 @@ export const useCreateRoom = () => {
           localStorage.setItem('playerId', response.room.hostId);
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', response.room.code);
+          localStorage.setItem('isHost', response.room.players[0].isHost)
           
           navigate(`/room/${response.room.code}`);
         } else {
@@ -61,8 +62,10 @@ export const useJoinRoom = () => {
           localStorage.setItem('playerId', response.player.id);
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', roomCode);
+          localStorage.setItem('isHost', response.player.isHost)
           
           navigate(`/room/${roomCode}`);
+          // navigate(`/room/${roomCode}`, { state: { room: response.room, fromJoin: true } });
         } else {
           setError(response.error || 'Failed to join room');
         }

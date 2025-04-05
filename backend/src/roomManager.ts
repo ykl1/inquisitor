@@ -17,7 +17,7 @@ class RoomManager {
     return code;
   }
 
-  createRoom(hostName: string, rounds: number, enableGuessing: boolean): Room {
+  createRoom(hostName: string, rounds: number, enableGuessing: boolean, socketId: string): Room {
     const roomCode = this.generateRoomCode();
     const hostId = Math.random().toString(36).substring(2);
     
@@ -28,6 +28,7 @@ class RoomManager {
       enableGuessing,
       players: [{
         id: hostId,
+        socketId: socketId,
         name: hostName,
         isHost: true,
         hasSubmittedQuestions: false
@@ -45,13 +46,14 @@ class RoomManager {
     return this.rooms.get(roomCode);
   }
 
-  addPlayer(roomCode: string, playerName: string): Player {
+  addPlayer(roomCode: string, playerName: string, socketId: string): Player {
     const room = this.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
     if (room.players.length >= 25) throw new Error('Room is full');
     
     const player: Player = {
       id: Math.random().toString(36).substring(2),
+      socketId: socketId,
       name: playerName,
       isHost: false,
       hasSubmittedQuestions: false

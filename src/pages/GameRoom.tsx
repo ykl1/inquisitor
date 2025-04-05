@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router'
 import { useParams } from 'react-router-dom';
 import { socket } from '../utils/socket';
+import { Socket } from 'socket.io-client';
 
 // Types
 type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';
@@ -19,7 +21,12 @@ type Question = {
 };
 
 const GameRoom = () => {
-  const { roomCode } = useParams();
+  // const location = useLocation();
+  // const fromJoin = location.state?.fromJoin;
+  // const initialRoom = location.state?.room;
+
+  const { roomCode } = useParams();  
+  const [currentSocket, setCurrentSocket] = useState<Socket | null>(null);
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [players, setPlayers] = useState<Player[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -28,18 +35,52 @@ const GameRoom = () => {
   const [questionInput, setQuestionInput] = useState('');
   const [isHost, setIsHost] = useState(false);
 
-  // Connect socket if not already connected
-  if (!socket.connected) {
-    console.log('Connected with ID:', socket.id);
-    socket.connect();
-  }
+  useEffect(() => {
+    // Check for existing session data
+    const playerId = localStorage.getItem('playerId')
+    const playerName = localStorage.getItem('playerName')
+    const roomCode = localStorage.getItem('roomCode')
+    const isHost = localStorage.getItem('isHost')
 
+    // Connect socket if not already connected
+    if (!socket.connected) {
+      console.log('Connected with ID:', socket.id);
+      socket.connect();
+    }
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+      
+      // If we have session data, attempt to rejoin the room
+      if (playerId && playerName && roomCode) {
+        socket.emit('rejoin_room', {
+          playerId: playerId,
+          playerName: playerName,
+          roomCode: roomCode
+        });
+      }
+      // set the current socket in state
+      setCurrentSocket(socket);
+
+      // Get all current players upon new join
+      socket.on('rejoin_success', (playerName) => {
+        console.log('Successfully rejoined:', playerName);
+      });
+
+      // Cleanup function runs when the GameRoom component unmounts
+      return () => {
+        socket.disconnect();
+      };
+    });
+  }, []);
+  
   // Get all current players upon new join
   socket.on('emit_all_players', (currentPlayersInRoom) => {
     console.log('Received event:', currentPlayersInRoom);
     setPlayers(currentPlayersInRoom.players)
   });
 
+  
   // Game setup status
   // const hasEnoughPlayers = players.length >= 4;
   // const allQuestionsSubmitted = players.every(p => p.hasSubmittedQuestions);

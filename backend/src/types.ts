@@ -11,6 +11,7 @@ export interface Room {
 
 export interface Player {
   id: string;
+  socketId: string;
   name: string;
   isHost: boolean;
   hasSubmittedQuestions: boolean;

@@ -18,7 +18,7 @@ io.on('connection', (socket) => {
 
   socket.on('create_room', ({ playerName, rounds, enableGuessing }, callback) => {
     try {
-      const room = roomManager.createRoom(playerName, rounds, enableGuessing);
+      const room = roomManager.createRoom(playerName, rounds, enableGuessing, socket.id);
       socket.join(room.code);
       callback({ success: true, room });
 
@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
       const room = roomManager.getRoom(roomCode);
       if (!room) throw new Error('Room not found');
 
-      const player = roomManager.addPlayer(roomCode, playerName);
+      const player = roomManager.addPlayer(roomCode, playerName, socket.id);
       socket.join(roomCode);
 
       console.log(`Room ${roomCode} has sockets:`, 
@@ -48,6 +48,35 @@ io.on('connection', (socket) => {
       emitAllPlayers(roomCode, players)      
     } catch (error) {
       callback({ success: false, error: error.message });
+    }
+  });
+
+  socket.on('rejoin_room', ({ playerId, playerName, roomCode }) => {
+    // Validate room exists
+    const room = roomManager.getRoom(roomCode);
+    if (!room) {
+      socket.emit('error', { message: 'Room no longer exists' });
+      return;
+    }
+
+    // Check if player was actually in this room before
+    const existingPlayer = room.players.find(p => p.id === playerId);
+    if (existingPlayer) {
+      console.log("exist")
+      // Update the socket id for this user
+      existingPlayer.socketId = socket.id;
+      
+      // Join the socket to the room
+      socket.join(roomCode);
+
+      // Notify user of successful rejoin
+      socket.emit('rejoin_success', { playerName });
+      
+      // Notify all players in the room of all current players
+      const players = room.players
+      emitAllPlayers(roomCode, players) 
+    } else {
+      console.log("player does not exist")
     }
   });
 
