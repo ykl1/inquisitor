@@ -1,30 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router'
 import { useParams } from 'react-router-dom';
 import { socket } from '../utils/socket';
 import { Socket } from 'socket.io-client';
-
-// Types
-type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';
-type Player = {
-  id: string;
-  name: string;
-  isHost: boolean;
-  hasSubmittedQuestions: boolean;
-};
-type Question = {
-  id: string;
-  text: string;
-  askedById: string;
-  targetPlayerId: string;
-  isAnswered: boolean;
-};
+import { GameState, Player, Question, Room } from './types';
 
 const GameRoom = () => {
-  // const location = useLocation();
-  // const fromJoin = location.state?.fromJoin;
-  // const initialRoom = location.state?.room;
-
   const { roomCode } = useParams();  
   const [currentSocket, setCurrentSocket] = useState<Socket | null>(null);
   const [gameState, setGameState] = useState<GameState>('waiting');
@@ -95,9 +75,15 @@ const GameRoom = () => {
     setPlayers(currentPlayersInRoom.players)
   });
 
+  // Get all current players upon new join
+  socket.on('start_game', (room: Room) => {
+    console.log('Received start game event:', room);
+    setGameState(room.gameState)
+  });
+
   
   // Game setup status
-  // const hasEnoughPlayers = players.length >= 4;
+  const hasEnoughPlayers = players.length >= 3;
   // const allQuestionsSubmitted = players.every(p => p.hasSubmittedQuestions);
 
   // Mock function to get player assignments (would come from backend)
@@ -108,11 +94,13 @@ const GameRoom = () => {
   //   return assignments;
   // };
 
-  // const startGame = () => {
-  //   if (!hasEnoughPlayers || !allQuestionsSubmitted) return;
-  //   setGameState('playing');
-  //   // Additional game start logic
-  // };
+  const startGame = () => {
+    setGameState('playing');
+    // Additional game start logic
+    socket.emit('host_start_game', {
+      roomCode: roomCode
+    });
+  };
 
   const submitQuestion = () => {
     if (!questionInput.trim()) return;
@@ -153,8 +141,8 @@ const GameRoom = () => {
               <p className="text-sm text-gray-600">Players: {players.length}</p>
               {isHost && gameState === 'waiting' && (
                 <button
-                  // onClick={startGame}
-                  // disabled={!hasEnoughPlayers || !allQuestionsSubmitted}
+                  onClick={startGame}
+                  disabled={!hasEnoughPlayers}
                   className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
                 >
                   Start Game

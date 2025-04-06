@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { roomManager } from './roomManager';
-import { Player } from './types';
+import { Player, GameState } from './types';
 
 const app = express();
 const httpServer = createServer(app);
@@ -78,6 +78,13 @@ io.on('connection', (socket) => {
     } else {
       console.log("player does not exist")
     }
+  });
+
+  socket.on('host_start_game', ({ roomCode }) => {
+    const room = roomManager.getRoom(roomCode);
+    if (!room) throw new Error('Room not found');
+    room.gameState = "playing"
+    io.to(roomCode).emit('start_game', { room });
   });
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
