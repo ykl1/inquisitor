@@ -75,13 +75,12 @@ const GameRoom = () => {
     setPlayers(currentPlayersInRoom.players)
   });
 
-  // Get all current players upon new join
-  socket.on('start_game', (room: Room) => {
-    console.log('Received start game event:', room);
-    setGameState(room.gameState)
+  // Set game state to submission phase 
+  socket.on('submission_state', (roomObj: Map<string, GameState>) => {
+    console.log('Received start game event:', roomObj);
+    setGameState(roomObj["room"].gameState)
   });
 
-  
   // Game setup status
   const hasEnoughPlayers = players.length >= 3;
   // const allQuestionsSubmitted = players.every(p => p.hasSubmittedQuestions);
@@ -95,7 +94,6 @@ const GameRoom = () => {
   // };
 
   const startGame = () => {
-    setGameState('playing');
     // Additional game start logic
     socket.emit('host_start_game', {
       roomCode: roomCode

@@ -83,8 +83,8 @@ io.on('connection', (socket) => {
   socket.on('host_start_game', ({ roomCode }) => {
     const room = roomManager.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
-    room.gameState = "playing"
-    io.to(roomCode).emit('start_game', { room });
+    room.gameState = "submitting"
+    io.to(roomCode).emit('submission_state', { room });
   });
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
