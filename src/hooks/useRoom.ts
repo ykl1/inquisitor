@@ -65,7 +65,6 @@ export const useJoinRoom = () => {
           localStorage.setItem('isHost', response.player.isHost)
           
           navigate(`/room/${roomCode}`);
-          // navigate(`/room/${roomCode}`, { state: { room: response.room, fromJoin: true } });
         } else {
           setError(response.error || 'Failed to join room');
         }

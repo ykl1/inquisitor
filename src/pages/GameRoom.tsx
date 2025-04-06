@@ -42,6 +42,21 @@ const GameRoom = () => {
     const roomCode = localStorage.getItem('roomCode')
     const isHost = localStorage.getItem('isHost')
 
+    setIsHost(Boolean(isHost))
+
+    if (playerId && playerName && roomCode && isHost) {
+      const currPlayer: Player = {
+        id: playerId,
+        name: playerName,
+        isHost: Boolean(isHost),
+        hasSubmittedQuestions: false
+      };
+      setCurrentPlayer(currPlayer)
+    } else {
+      // TODO: emit event to make this player leave the room
+      console.log("couldn't find player data in local storage")
+    }
+    
     // Connect socket if not already connected
     if (!socket.connected) {
       console.log('Connected with ID:', socket.id);
@@ -131,6 +146,7 @@ const GameRoom = () => {
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Room: {roomCode}</h2>
+              <p className="text-gray-600">Current Player: {currentPlayer?.name}</p>
               <p className="text-gray-600">Game State: {gameState}</p>
             </div>
             <div className="text-right">
