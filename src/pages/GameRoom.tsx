@@ -42,9 +42,9 @@ const GameRoom = () => {
     const roomCode = localStorage.getItem('roomCode')
     const isHost = localStorage.getItem('isHost')
 
-    setIsHost(Boolean(isHost))
-
     if (playerId && playerName && roomCode && isHost) {
+      setIsHost(JSON.parse(isHost.toLowerCase()))
+
       const currPlayer: Player = {
         id: playerId,
         name: playerName,
