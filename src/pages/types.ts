@@ -1,12 +1,19 @@
 // Types
 export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';
 
-export type Player = {
+export interface Player {
   id: string;
   name: string;
   isHost: boolean;
   hasSubmittedQuestions: boolean;
-};
+  assignedTargets: assignedTarget[];
+  receivedQuestions: Question[];
+}
+
+export interface assignedTarget {
+  id: string;
+  name: string
+}
 
 export type Question = {
   id: string;
@@ -24,10 +31,4 @@ export interface Room {
   players: Player[];
   gameState: GameState;
   questions: Question[];
-  assignments: QuestionAssignment[];
-}
-
-export interface QuestionAssignment {
-  askerId: string;
-  targetId: string;
 }

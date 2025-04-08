@@ -27,6 +27,7 @@ export const useCreateRoom = () => {
           localStorage.setItem('playerId', response.room.hostId);
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', response.room.code);
+          localStorage.setItem('gameState', response.room.gameState);
           localStorage.setItem('isHost', response.room.players[0].isHost)
           
           navigate(`/room/${response.room.code}`);
@@ -62,6 +63,7 @@ export const useJoinRoom = () => {
           localStorage.setItem('playerId', response.player.id);
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', roomCode);
+          localStorage.setItem('gameState', response.room.gameState);
           localStorage.setItem('isHost', response.player.isHost)
           
           navigate(`/room/${roomCode}`);

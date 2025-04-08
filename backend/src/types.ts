@@ -6,7 +6,6 @@ export interface Room {
   players: Player[];
   gameState: GameState;
   questions: Question[];
-  assignments: QuestionAssignment[];
 }
 
 export interface Player {
@@ -15,6 +14,13 @@ export interface Player {
   name: string;
   isHost: boolean;
   hasSubmittedQuestions: boolean;
+  assignedTargets: assignedTarget[];
+  receivedQuestions: Question[];
+}
+
+export interface assignedTarget {
+  id: string;
+  name: string
 }
 
 export interface Question {
@@ -23,11 +29,6 @@ export interface Question {
   askedById: string;
   targetPlayerId: string;
   isAnswered: boolean;
-}
-
-export interface QuestionAssignment {
-  askerId: string;
-  targetId: string;
 }
 
 export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';

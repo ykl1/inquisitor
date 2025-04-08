@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { roomManager } from './roomManager';
-import { Player, GameState } from './types';
+import { Player, GameState, Room } from './types';
 
 const app = express();
 const httpServer = createServer(app);
@@ -84,6 +84,10 @@ io.on('connection', (socket) => {
     const room = roomManager.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
     room.gameState = "submitting"
+
+    // TODO: add logic for assigning each player to X number of players
+    roomManager.assignBalancedTargets(roomCode)
+
     io.to(roomCode).emit('submission_state', { room });
   });
 

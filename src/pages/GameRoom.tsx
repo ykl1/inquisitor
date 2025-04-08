@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { socket } from '../utils/socket';
 import { Socket } from 'socket.io-client';
-import { GameState, Player, Question, Room } from './types';
+import { GameState, Player, Question } from './types';
 
 const GameRoom = () => {
   const { roomCode } = useParams();  
@@ -17,10 +17,16 @@ const GameRoom = () => {
 
   useEffect(() => {
     // Check for existing session data
+    const gameState = localStorage.getItem('gameState')
+    const currGameState = gameState ? (gameState as GameState): 'waiting'
     const playerId = localStorage.getItem('playerId')
     const playerName = localStorage.getItem('playerName')
     const roomCode = localStorage.getItem('roomCode')
     const isHost = localStorage.getItem('isHost')
+    const storedTargets = localStorage.getItem('assignedTargets');
+    // this will be [] before submission game state
+    const assignedTargets = storedTargets ? JSON.parse(storedTargets) : [];
+    
 
     if (playerId && playerName && roomCode && isHost) {
       setIsHost(JSON.parse(isHost.toLowerCase()))
@@ -29,13 +35,17 @@ const GameRoom = () => {
         id: playerId,
         name: playerName,
         isHost: Boolean(isHost),
-        hasSubmittedQuestions: false
+        hasSubmittedQuestions: false,
+        assignedTargets,
+        receivedQuestions: []
       };
       setCurrentPlayer(currPlayer)
     } else {
       // TODO: emit event to make this player leave the room
       console.log("couldn't find player data in local storage")
     }
+
+    setGameState(currGameState)
     
     // Connect socket if not already connected
     if (!socket.connected) {
@@ -79,19 +89,28 @@ const GameRoom = () => {
   socket.on('submission_state', (roomObj: Map<string, GameState>) => {
     console.log('Received start game event:', roomObj);
     setGameState(roomObj["room"].gameState)
+    const playerId = localStorage.getItem('playerId')
+    console.log(playerId)
+    const currPlayer = roomObj["room"].players.find(p => p.id === playerId);
+    console.log(currPlayer.assignedTargets)
+
+    // To replace the assignedTargets array
+    localStorage.setItem('assignedTargets', JSON.stringify(currPlayer.assignedTargets))
+
+    setCurrentPlayer(prevPlayer => {
+      if (!prevPlayer) {
+        throw new Error("GameRoom: unable to get currentPlayer")
+      }
+      return {
+        ...prevPlayer,
+        assignedTargets: currPlayer.assignedTargets
+      };
+    });
+
   });
 
   // Game setup status
   const hasEnoughPlayers = players.length >= 3;
-  // const allQuestionsSubmitted = players.every(p => p.hasSubmittedQuestions);
-
-  // Mock function to get player assignments (would come from backend)
-  // const getQuestionAssignments = () => {
-  //   // Randomly assign players to ask questions to others
-  //   const assignments: { askerId: string; targetId: string }[] = [];
-  //   // Implementation would go here
-  //   return assignments;
-  // };
 
   const startGame = () => {
     // Additional game start logic
@@ -174,6 +193,14 @@ const GameRoom = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">Submit Your Questions</h3>
             <div className="space-y-4">
+              {currentPlayer?.assignedTargets.map(assignedTarget => (
+                <div
+                  key={assignedTarget.id}
+                  className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                >
+                  <span>{assignedTarget.name}</span>
+                </div>
+              ))}
               <textarea
                 value={questionInput}
                 onChange={(e) => setQuestionInput(e.target.value)}
