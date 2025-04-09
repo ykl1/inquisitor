@@ -85,8 +85,23 @@ io.on('connection', (socket) => {
     if (!room) throw new Error('Room not found');
     room.gameState = "submitting"
 
-    // TODO: add logic for assigning each player to X number of players
-    roomManager.assignBalancedTargets(roomCode)
+    // Retry assignBalancedTargets 3 times if it fails
+    let success = false;
+    let attempts = 0;
+    const maxRetries = 3;
+    while (!success && attempts <= maxRetries) {
+      try {
+        roomManager.assignBalancedTargets(roomCode);
+        success = true;
+      } catch (error) {
+        attempts++;
+        if (attempts > maxRetries) {
+          console.error(`Failed to assign targets after ${maxRetries} attempts:`, error);
+        } else {
+          console.log(`Attempt ${attempts} failed, retrying...`);
+        }
+      }
+    }
 
     io.to(roomCode).emit('submission_state', { room });
   });

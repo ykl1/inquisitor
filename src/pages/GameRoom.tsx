@@ -27,7 +27,6 @@ const GameRoom = () => {
     // this will be [] before submission game state
     const assignedTargets = storedTargets ? JSON.parse(storedTargets) : [];
     
-
     if (playerId && playerName && roomCode && isHost) {
       setIsHost(JSON.parse(isHost.toLowerCase()))
 
@@ -88,15 +87,17 @@ const GameRoom = () => {
   // Set game state to submission phase 
   socket.on('submission_state', (roomObj: Map<string, GameState>) => {
     console.log('Received start game event:', roomObj);
+
+    // Update gameState in useState and local storage to 'submitting'
     setGameState(roomObj["room"].gameState)
+    localStorage.setItem('gameState', roomObj["room"].gameState);
+    
+
+    // Get the currentPlayer's assignedTargets and update 
+    // local storage and currentPlayer useState
     const playerId = localStorage.getItem('playerId')
-    console.log(playerId)
     const currPlayer = roomObj["room"].players.find(p => p.id === playerId);
-    console.log(currPlayer.assignedTargets)
-
-    // To replace the assignedTargets array
     localStorage.setItem('assignedTargets', JSON.stringify(currPlayer.assignedTargets))
-
     setCurrentPlayer(prevPlayer => {
       if (!prevPlayer) {
         throw new Error("GameRoom: unable to get currentPlayer")
