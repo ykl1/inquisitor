@@ -10,6 +10,8 @@ const GameRoom = () => {
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [players, setPlayers] = useState<Player[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+  // key = userId, value = question being sent to userId
+  const [questionsMap, setQuestionsMap] = useState<Record<string, string>>({});
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [questionInput, setQuestionInput] = useState('');
@@ -24,6 +26,8 @@ const GameRoom = () => {
     const roomCode = localStorage.getItem('roomCode')
     const isHost = localStorage.getItem('isHost')
     const storedTargets = localStorage.getItem('assignedTargets');
+    const getHasSubmittedQuestions = localStorage.getItem('hasSubmittedQuestions')
+    const hasSubmittedQuestions = toBoolean(getHasSubmittedQuestions)
     // this will be [] before submission game state
     const assignedTargets = storedTargets ? JSON.parse(storedTargets) : [];
     
@@ -34,7 +38,7 @@ const GameRoom = () => {
         id: playerId,
         name: playerName,
         isHost: Boolean(isHost),
-        hasSubmittedQuestions: false,
+        hasSubmittedQuestions,
         assignedTargets,
         receivedQuestions: []
       };
@@ -92,7 +96,6 @@ const GameRoom = () => {
     setGameState(roomObj["room"].gameState)
     localStorage.setItem('gameState', roomObj["room"].gameState);
     
-
     // Get the currentPlayer's assignedTargets and update 
     // local storage and currentPlayer useState
     const playerId = localStorage.getItem('playerId')
@@ -120,28 +123,49 @@ const GameRoom = () => {
     });
   };
 
-  const submitQuestion = () => {
-    if (!questionInput.trim()) return;
-    
-    // Add question to the list
-    const newQuestion: Question = {
-      id: Math.random().toString(),
-      text: questionInput,
-      askedById: currentPlayer?.id || '',
-      targetPlayerId: '', // Would be set based on assignments
-      isAnswered: false
-    };
-    
-    setQuestions([...questions, newQuestion]);
-    setQuestionInput('');
-    
-    // Update player status
-    if (currentPlayer) {
-      const updatedPlayers = players.map(p =>
-        p.id === currentPlayer.id ? { ...p, hasSubmittedQuestions: true } : p
-      );
-      setPlayers(updatedPlayers);
+  const toBoolean = (value: string | null) => {
+    if (value) {
+      return value.toLowerCase() === "true";
+    } else {
+      return false
     }
+  }
+
+  // Send questions to the backend server. 
+  const submitQuestions = (questionsMap) => {
+    console.log("hello world: ", questionsMap)
+
+    // update currentPlayer to have hasSubmittedQuestions field set to true
+    setCurrentPlayer(prevPlayer => {
+      if (!prevPlayer) {
+        throw new Error("GameRoom: unable to get currentPlayer")
+      }
+      return {
+        ...prevPlayer,
+        hasSubmittedQuestions: true
+      };
+    });
+    // store hasSubmittedQuestions variable in localStorage as true
+    localStorage.setItem('hasSubmittedQuestions', 'true')
+
+    // if (!questionInput.trim()) return;
+    // Add question to the list
+    // const newQuestion: Question = {
+    //   id: Math.random().toString(),
+    //   text: questionInput,
+    //   askedById: currentPlayer?.id || '',
+    //   targetPlayerId: '', // Would be set based on assignments
+    //   isAnswered: false
+    // };
+    // setQuestions([...questions, newQuestion]);
+    // setQuestionInput('');
+    // Update player status
+    // if (currentPlayer) {
+    //   const updatedPlayers = players.map(p =>
+    //     p.id === currentPlayer.id ? { ...p, hasSubmittedQuestions: true } : p
+    //   );
+    //   setPlayers(updatedPlayers);
+    // }
   };
 
   return (
@@ -196,24 +220,34 @@ const GameRoom = () => {
             <div className="space-y-4">
               {currentPlayer?.assignedTargets.map(assignedTarget => (
                 <div
-                  key={assignedTarget.id}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                key={assignedTarget.id}
+                className="flex flex-col p-3 bg-gray-50 rounded-md gap-2"
                 >
-                  <span>{assignedTarget.name}</span>
-                </div>
+                <span className="font-medium">{assignedTarget.name}</span>
+
+                <textarea
+                  value={questionsMap[assignedTarget.id] || ''}
+                  onChange={(e) => setQuestionsMap(prev => ({
+                    ...prev,
+                    [assignedTarget.id]: e.target.value
+                  }))}
+                  placeholder="Type your question here..."
+                  className={`w-full p-2 border rounded-md ${currentPlayer.hasSubmittedQuestions ? 'bg-gray-100 text-gray-500' : ''}`}
+                  rows={3}
+                  disabled={currentPlayer.hasSubmittedQuestions}
+                />
+              </div>
               ))}
-              <textarea
-                value={questionInput}
-                onChange={(e) => setQuestionInput(e.target.value)}
-                placeholder="Type your question here..."
-                className="w-full p-2 border rounded-md"
-                rows={3}
-              />
               <button
-                onClick={submitQuestion}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md"
+                onClick={() => submitQuestions(questionsMap)}
+                className={`px-4 py-2 text-white rounded-md transition-colors ${
+                  currentPlayer?.hasSubmittedQuestions 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+                disabled={currentPlayer?.hasSubmittedQuestions || false}
               >
-                Submit Question
+                {currentPlayer?.hasSubmittedQuestions ? 'Questions Submitted' : 'Submit Questions'}
               </button>
             </div>
           </div>
