@@ -37,6 +37,7 @@ class RoomManager {
       }],
       gameState: 'waiting',
       questions: [],
+      totalPlayersThatSubmittedQuestions: 0
     };
 
     this.rooms.set(roomCode, room);

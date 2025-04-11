@@ -31,4 +31,5 @@ export interface Room {
   players: Player[];
   gameState: GameState;
   questions: Question[];
+  totalPlayersThatSubmittedQuestions: number;
 }

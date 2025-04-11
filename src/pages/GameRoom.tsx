@@ -45,9 +45,7 @@ const GameRoom = () => {
       // TODO: emit event to make this player leave the room
       console.log("couldn't find player data in local storage")
     }
-
     setGameState(currGameState)
-    
     // Connect socket if not already connected
     if (!socket.connected) {
       console.log('Connected with ID:', socket.id);
@@ -56,7 +54,6 @@ const GameRoom = () => {
 
     socket.on('connect', () => {
       console.log('Connected to server');
-      
       // If we have session data, attempt to rejoin the room
       if (playerId && playerName && roomCode) {
         socket.emit('rejoin_room', {
@@ -67,12 +64,10 @@ const GameRoom = () => {
       }
       // set the current socket in state
       setCurrentSocket(socket);
-
       // Get all current players upon new join
       socket.on('rejoin_success', (playerName) => {
         console.log('Successfully rejoined:', playerName);
       });
-
       // Cleanup function runs when the GameRoom component unmounts
       return () => {
         socket.disconnect();
@@ -89,7 +84,6 @@ const GameRoom = () => {
   // Set game state to submission phase 
   socket.on('submission_state', (roomObj: Map<string, GameState>) => {
     console.log('Received start game event:', roomObj);
-
     // Update gameState in useState and local storage to 'submitting'
     setGameState(roomObj["room"].gameState)
     localStorage.setItem('gameState', roomObj["room"].gameState);
@@ -108,7 +102,16 @@ const GameRoom = () => {
         assignedTargets: currPlayer.assignedTargets
       };
     });
+  });
 
+  // currentPlayer will receive their assigned questions
+  socket.on('received_questions', (returnObj: Map<string, GameState>) => {
+    console.log('roomObj:', returnObj);
+    // Update gameState in useState and local storage to 'submitting'
+    setGameState(returnObj["room"].gameState)
+    localStorage.setItem('gameState', returnObj["room"].gameState);
+
+    console.log('Received questions:', returnObj["questions"]);
   });
 
   // Game setup status
@@ -132,7 +135,6 @@ const GameRoom = () => {
   // Send questions to the backend server. 
   const submitQuestions = (questionsMap) => {
     console.log("hello world: ", questionsMap)
-
     // update currentPlayer to have hasSubmittedQuestions field set to true
     setCurrentPlayer(prevPlayer => {
       if (!prevPlayer) {
@@ -143,10 +145,8 @@ const GameRoom = () => {
         hasSubmittedQuestions: true
       };
     });
-
     // store hasSubmittedQuestions variable in localStorage as true
     localStorage.setItem('hasSubmittedQuestions', 'true')
-
     // Convert questionsMap to Questions array
     const questions: Question[] = Object.entries(questionsMap).map(([targetPlayerId, questionText]) => ({
       id: Math.random().toString(),
@@ -155,8 +155,8 @@ const GameRoom = () => {
       targetPlayerId: targetPlayerId,
       isAnswered: false
     }));
-
     socket.emit('submit_questions', {
+      player: currentPlayer,
       roomCode: roomCode,
       questions: questions
     });
@@ -247,15 +247,15 @@ const GameRoom = () => {
           </div>
         )}
 
-        {gameState === 'playing' && currentQuestion && (
+        {gameState === 'playing' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">Current Question</h3>
-            <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            {/* <div className="mb-4 p-4 bg-gray-50 rounded-md">
               <p className="text-lg">{currentQuestion.text}</p>
               <p className="text-sm text-gray-600 mt-2">
                 For: {players.find(p => p.id === currentQuestion.targetPlayerId)?.name}
               </p>
-            </div>
+            </div> */}
             {/* Answer/Guess UI would go here */}
           </div>
         )}
