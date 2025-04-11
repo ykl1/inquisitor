@@ -28,7 +28,8 @@ export const useCreateRoom = () => {
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', response.room.code);
           localStorage.setItem('gameState', response.room.gameState);
-          localStorage.setItem('isHost', response.room.players[0].isHost)
+          localStorage.setItem('isHost', response.room.players[0].isHost);
+          localStorage.setItem('hasSubmittedQuestions', "false");
           
           navigate(`/room/${response.room.code}`);
         } else {
@@ -64,7 +65,8 @@ export const useJoinRoom = () => {
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', roomCode);
           localStorage.setItem('gameState', response.room.gameState);
-          localStorage.setItem('isHost', response.player.isHost)
+          localStorage.setItem('isHost', response.player.isHost);
+          localStorage.setItem('hasSubmittedQuestions', "false");
           
           navigate(`/room/${roomCode}`);
         } else {

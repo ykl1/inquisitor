@@ -9,12 +9,10 @@ const GameRoom = () => {
   const [currentSocket, setCurrentSocket] = useState<Socket | null>(null);
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [questions, setQuestions] = useState<Question[]>([]);
   // key = userId, value = question being sent to userId
   const [questionsMap, setQuestionsMap] = useState<Record<string, string>>({});
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [questionInput, setQuestionInput] = useState('');
   const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
@@ -145,27 +143,23 @@ const GameRoom = () => {
         hasSubmittedQuestions: true
       };
     });
+
     // store hasSubmittedQuestions variable in localStorage as true
     localStorage.setItem('hasSubmittedQuestions', 'true')
 
-    // if (!questionInput.trim()) return;
-    // Add question to the list
-    // const newQuestion: Question = {
-    //   id: Math.random().toString(),
-    //   text: questionInput,
-    //   askedById: currentPlayer?.id || '',
-    //   targetPlayerId: '', // Would be set based on assignments
-    //   isAnswered: false
-    // };
-    // setQuestions([...questions, newQuestion]);
-    // setQuestionInput('');
-    // Update player status
-    // if (currentPlayer) {
-    //   const updatedPlayers = players.map(p =>
-    //     p.id === currentPlayer.id ? { ...p, hasSubmittedQuestions: true } : p
-    //   );
-    //   setPlayers(updatedPlayers);
-    // }
+    // Convert questionsMap to Questions array
+    const questions: Question[] = Object.entries(questionsMap).map(([targetPlayerId, questionText]) => ({
+      id: Math.random().toString(),
+      text: questionText as string,
+      askedById: currentPlayer?.id || '',
+      targetPlayerId: targetPlayerId,
+      isAnswered: false
+    }));
+
+    socket.emit('submit_questions', {
+      roomCode: roomCode,
+      questions: questions
+    });
   };
 
   return (

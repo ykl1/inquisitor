@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { roomManager } from './roomManager';
-import { Player, GameState, Room } from './types';
+import { Player, GameState, Room, Question } from './types';
 
 const app = express();
 const httpServer = createServer(app);
@@ -104,6 +104,26 @@ io.on('connection', (socket) => {
     }
 
     io.to(roomCode).emit('submission_state', { room });
+  });
+
+
+  socket.on('submit_questions', ({ roomCode, questions }: { roomCode: string, questions: Question[] }) => {
+    const room = roomManager.getRoom(roomCode);
+    if (!room) throw new Error('Room not found');
+
+    // Iterate over the sent questions and add them to the targetPlayers'
+    // receivedQuestions field
+    questions.forEach(question => {
+      console.log(question)
+      const player = room.players.find(p => p.id === question.targetPlayerId);
+      if (player) {
+        console.log(`Found player ${player.id}: ${player.name}`)
+        player.receivedQuestions.push(question)
+      } else {
+        console.log(`No player found for ${question.targetPlayerId}`);
+      }
+
+    })
   });
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
