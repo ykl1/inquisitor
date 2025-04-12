@@ -12,7 +12,7 @@ const GameRoom = () => {
   // key = userId, value = question being sent to userId
   const [questionsMap, setQuestionsMap] = useState<Record<string, string>>({});
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [currentReceivedQuestions, setCurrentReceivedQuestions] = useState<Question[] | null>(null);
   const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
@@ -112,6 +112,8 @@ const GameRoom = () => {
     localStorage.setItem('gameState', returnObj["room"].gameState);
 
     console.log('Received questions:', returnObj["questions"]);
+
+    setCurrentReceivedQuestions(returnObj["questions"])
   });
 
   // Game setup status
@@ -134,7 +136,7 @@ const GameRoom = () => {
 
   // Send questions to the backend server. 
   const submitQuestions = (questionsMap) => {
-    console.log("hello world: ", questionsMap)
+    console.log("Sending questions to server: ", questionsMap)
     // update currentPlayer to have hasSubmittedQuestions field set to true
     setCurrentPlayer(prevPlayer => {
       if (!prevPlayer) {
@@ -247,16 +249,19 @@ const GameRoom = () => {
           </div>
         )}
 
+        
         {gameState === 'playing' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4">Current Question</h3>
-            {/* <div className="mb-4 p-4 bg-gray-50 rounded-md">
-              <p className="text-lg">{currentQuestion.text}</p>
-              <p className="text-sm text-gray-600 mt-2">
-                For: {players.find(p => p.id === currentQuestion.targetPlayerId)?.name}
-              </p>
-            </div> */}
-            {/* Answer/Guess UI would go here */}
+            <h3 className="text-xl font-semibold mb-4">People asked you these questions:</h3>
+            {/* Display Current User's Received Questions Here */}
+            {currentReceivedQuestions?.map((question) => (
+              <div key={question.id} className="p-3 mb-2 border border-gray-200 rounded">
+                {question.text}
+              </div>
+            ))}
+            {currentReceivedQuestions == null && (
+              <p className="text-gray-500 italic">No questions yet.</p>
+            )}
           </div>
         )}
 

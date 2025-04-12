@@ -1,4 +1,4 @@
-import { Room, Player, GameState, Question } from './types';
+import { Room, Player } from './types';
 
 class RoomManager {
   private rooms: Map<string, Room> = new Map();
