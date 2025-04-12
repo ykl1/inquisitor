@@ -23,13 +23,14 @@ export const useCreateRoom = () => {
         setIsLoading(false);
         console.log(response.room)
         if (response.success && response.room) {
-          // Store relevant info in localStorage?
           localStorage.setItem('playerId', response.room.hostId);
           localStorage.setItem('playerName', playerName);
           localStorage.setItem('roomCode', response.room.code);
           localStorage.setItem('gameState', response.room.gameState);
           localStorage.setItem('isHost', response.room.players[0].isHost);
           localStorage.setItem('hasSubmittedQuestions', "false");
+          // Field only applies to host
+          localStorage.setItem('all_submitted', "false");
           
           navigate(`/room/${response.room.code}`);
         } else {

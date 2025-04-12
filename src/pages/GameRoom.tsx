@@ -14,6 +14,7 @@ const GameRoom = () => {
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [currentReceivedQuestions, setCurrentReceivedQuestions] = useState<Question[] | null>(null);
   const [isHost, setIsHost] = useState(false);
+  const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
 
   useEffect(() => {
     // Check for existing session data
@@ -26,6 +27,7 @@ const GameRoom = () => {
     const storedTargets = localStorage.getItem('assignedTargets');
     const getHasSubmittedQuestions = localStorage.getItem('hasSubmittedQuestions')
     const hasSubmittedQuestions = toBoolean(getHasSubmittedQuestions)
+    const allSubmitted = localStorage.getItem('all_submitted')
     // this will be [] before submission game state
     const assignedTargets = storedTargets ? JSON.parse(storedTargets) : [];
     
@@ -50,6 +52,11 @@ const GameRoom = () => {
     if (!socket.connected) {
       console.log('Connected with ID:', socket.id);
       socket.connect();
+    }
+
+    // In case host refreshes when all players have submitted. So they can click on start playing button.
+    if (allSubmitted) {
+      setHasEveryoneSubmitted(toBoolean(allSubmitted))
     }
 
     socket.on('connect', () => {
@@ -83,7 +90,7 @@ const GameRoom = () => {
 
   // Set game state to submission phase 
   socket.on('submission_state', (roomObj: Map<string, GameState>) => {
-    console.log('Received start game event:', roomObj);
+    console.log('Received submission game event:', roomObj);
     // Update gameState in useState and local storage to 'submitting'
     setGameState(roomObj["room"].gameState)
     localStorage.setItem('gameState', roomObj["room"].gameState);
@@ -112,16 +119,28 @@ const GameRoom = () => {
     localStorage.setItem('gameState', returnObj["room"].gameState);
 
     console.log('Received questions:', returnObj["questions"]);
-
     setCurrentReceivedQuestions(returnObj["questions"])
   });
 
-  // Game setup status
+  // Once all players have submitted questions, server will send event to host
+  // notifying all players have submitted questions
+  socket.on('all_players_have_submitted', (returnObj) => {
+    console.log(returnObj["all_submitted"])
+    setHasEveryoneSubmitted(returnObj["all_submitted"])
+    localStorage.setItem('all_submitted', returnObj["all_submitted"].toString());
+  });
+
+  // Minimum number of players in room is 3
   const hasEnoughPlayers = players.length >= 3;
 
-  const startGame = () => {
-    // Additional game start logic
-    socket.emit('host_start_game', {
+  const startSubmissionState = () => {
+    socket.emit('host_start_submission_state', {
+      roomCode: roomCode
+    });
+  };
+
+  const startPlayingState = () => {
+    socket.emit('host_start_playing_state', {
       roomCode: roomCode
     });
   };
@@ -179,11 +198,21 @@ const GameRoom = () => {
               <p className="text-sm text-gray-600">Players: {players.length}</p>
               {isHost && gameState === 'waiting' && (
                 <button
-                  onClick={startGame}
+                  onClick={startSubmissionState}
                   disabled={!hasEnoughPlayers}
                   className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
                 >
-                  Start Game
+                  Start Submitting Questions~
+                </button>
+              )}
+
+              {isHost && gameState === 'submitting' && (
+                <button
+                  onClick={startPlayingState}
+                  disabled={!hasEveryoneSubmitted}
+                  className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
+                >
+                  Start Playing~
                 </button>
               )}
             </div>
@@ -249,7 +278,6 @@ const GameRoom = () => {
           </div>
         )}
 
-        
         {gameState === 'playing' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">People asked you these questions:</h3>

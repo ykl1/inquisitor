@@ -80,7 +80,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('host_start_game', ({ roomCode }) => {
+  socket.on('host_start_submission_state', ({ roomCode }) => {
     const room = roomManager.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
     room.gameState = "submitting"
@@ -132,23 +132,38 @@ io.on('connection', (socket) => {
     })
 
     // Check if totalPlayersThatSubmittedQuestions == total players in room
-    // then emit the questions to each player
+    // then notify host that they can start the game
     if (room.players.length === room.totalPlayersThatSubmittedQuestions) {
-      room.gameState = "playing"
-      console.log(`All players in room ${room.code} have submitted their questions. Now distributing questions to each player`)
-      room.players.forEach(player => {
-        // Check if the player has any received questions
-        if (player.receivedQuestions.length > 0) {
-          // Emit the questions to the specific player using their socket ID
-          io.to(player.socketId).emit('received_questions', {
-            room: room,
-            questions: player.receivedQuestions
-          });
-        } else {
-          console.log(`Player ${player.id} did not receive any questions.`)
-        }
+      console.log(`All players in room ${room.code} have submitted their questions.`)
+      
+      const host = room.players.find(p => p.id === room.hostId);
+      if (!host) throw new Error('Host not found');
+
+      io.to(host.socketId).emit('all_players_have_submitted', {
+        all_submitted: true,
       });
     }
+  });
+
+  socket.on('host_start_playing_state', ({ roomCode }) => {
+    const room = roomManager.getRoom(roomCode);
+    if (!room) throw new Error('Room not found');
+
+    // Update player to indicate they have submitted questions
+    room.gameState = "playing"
+
+    room.players.forEach(player => {
+      // Check if the player has any received questions
+      if (player.receivedQuestions.length > 0) {
+        // Emit the questions to the specific player using their socket ID
+        io.to(player.socketId).emit('received_questions', {
+          room: room,
+          questions: player.receivedQuestions
+        });
+      } else {
+        console.log(`Player ${player.id} did not receive any questions.`)
+      }
+    });
   });
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
