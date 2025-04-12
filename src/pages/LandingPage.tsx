@@ -39,7 +39,7 @@ const LandingPage = () => {
             </li>
             <li className="flex items-start">
               <span className="mr-2">3.</span>
-              <span>Take turns answering questions or guess who asked them</span>
+              <span>Take turns answering questions</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">4.</span>
