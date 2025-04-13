@@ -124,23 +124,19 @@ const GameRoom = () => {
     setCurrentAnsweringPlayer(returnObj["currentPlayer"])
   });
 
-  // currentPlayer will receive their assigned questions
-  // socket.on('received_questions', (returnObj: Map<string, GameState>) => {
-  //   console.log('roomObj:', returnObj);
-  //   // Update gameState in useState and local storage to 'submitting'
-  //   setGameState(returnObj["room"].gameState)
-  //   localStorage.setItem('gameState', returnObj["room"].gameState);
-
-  //   console.log('Received questions:', returnObj["questions"]);
-  //   setCurrentReceivedQuestions(returnObj["questions"])
-  // });
-
   // Once all players have submitted questions, server will send event to host
   // notifying all players have submitted questions
   socket.on('all_players_have_submitted', (returnObj) => {
     console.log(returnObj["all_submitted"])
     setHasEveryoneSubmitted(returnObj["all_submitted"])
     localStorage.setItem('all_submitted', returnObj["all_submitted"].toString());
+  });
+
+  // Set Game State to finished
+  socket.on('finished_game_state', (returnObj) => {
+    console.log(returnObj["room"])
+    setGameState(returnObj["room"].gameState)
+    localStorage.setItem('gameState', returnObj["room"].gameState);
   });
 
   // Minimum number of players in room is 3
@@ -196,6 +192,15 @@ const GameRoom = () => {
     });
   };
 
+  // Send questions to the backend server. 
+  const answeredQuestion = () => {
+    console.log("Notifying server current player has answered their question")
+    socket.emit('answered_question', {
+      roomCode: roomCode,
+      question: currentQuestionBeingAnswered
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -218,7 +223,6 @@ const GameRoom = () => {
                   Start Submitting Questions~
                 </button>
               )}
-
               {isHost && gameState === 'submitting' && (
                 <button
                   onClick={startPlayingState}
@@ -243,9 +247,6 @@ const GameRoom = () => {
                   className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
                 >
                   <span>{player.name} {player.isHost && '(Host)'}</span>
-                  {/* <span className={player.hasSubmittedQuestions ? 'text-green-600' : 'text-red-600'}>
-                    {player.hasSubmittedQuestions ? 'Ready' : 'Not Ready'}
-                  </span> */}
                 </div>
               ))}
             </div>
@@ -294,13 +295,21 @@ const GameRoom = () => {
         {gameState === 'playing' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             {currentAnsweringPlayer != null && (
-              <h3 className="text-xl font-semibold mb-4">{currentAnsweringPlayer.name} was asked:</h3>
+              <h3 className="text-xl font-semibold mb-4">Someone in this room asked {currentAnsweringPlayer.name},</h3>
             )}
             {/* Display Current Selected Player and their current question here */}
             {currentQuestionBeingAnswered != null && (
-              <div key={currentQuestionBeingAnswered.id} className="p-3 mb-2 border border-gray-200 rounded">
+              <div key={currentQuestionBeingAnswered.id} className="text-xl font-semibold mb-4">
                 {currentQuestionBeingAnswered.text}
               </div>
+            )}
+            {currentPlayer?.id == currentAnsweringPlayer?.id && (
+              <button
+                onClick={answeredQuestion}
+                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
+              >
+                Click Once Answered
+              </button>
             )}
           </div>
         )}
@@ -308,7 +317,6 @@ const GameRoom = () => {
         {gameState === 'finished' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">Game Finished!</h3>
-            {/* Game summary would go here */}
           </div>
         )}
       </div>

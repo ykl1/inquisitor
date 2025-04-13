@@ -2,7 +2,7 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { roomManager } from './roomManager';
-import { Player, Question } from './types';
+import { Player, Question, Room } from './types';
 
 const app = express();
 const httpServer = createServer(app);
@@ -160,15 +160,8 @@ io.on('connection', (socket) => {
     room.currentPlayerIdx = 0;
     
     // Get current player and one unanswered question from their received questions:
-    const currentPlayer = room.players[room.currentPlayerIdx]
-    const availableQuestions = currentPlayer.receivedQuestions.filter(q => !q.isAnswered);
-    if (availableQuestions.length === 0) {
-      // TODO: For this edge case, perhaps skip this player instead?
-      throw new Error('Player has no unanswered questions');
-    }
-    const currentQuestion = availableQuestions[0];
+    emitCurrentPQToAllPlayers(room)
 
-    io.to(roomCode).emit('current_player_and_question', { room, currentPlayer, currentQuestion });
     /*
     TODO:
       When host clicks start game on the client side, it'll send a socket event to
@@ -181,8 +174,6 @@ io.on('connection', (socket) => {
         - A question amongst currentPlayer.receivedQuestions where isAnswered=false is retrieved
         - We emit this question + currentPlayer to all players in the room, so it can be displayed
         - Send room state as well to update the state to playing.
-
-      Implement persistence of current answering player and current question being asked.
 
       After player clicks on answer button on client-side (indicating they answered the question), 
       it'll send a socket event to server. When server receives this event:
@@ -197,8 +188,54 @@ io.on('connection', (socket) => {
           - if currentRound > rounds we finish game + send a finished game event to room players
           - if currentRound <= rounds, we reset the currentPlayerIdx to 0.
             - We follow the same flow of getting the player, their available question, then emit that to the room.
+      
+      Implement persistence of current answering player and current question being asked.
     */
   });
+
+  socket.on('answered_question', ({ roomCode, question }: { roomCode: string, player: Player, question: Question }) => {
+    const room = roomManager.getRoom(roomCode);
+    if (!room) throw new Error('Room not found');
+
+    // Set the current asked question of the current player as answered
+    const currentPlayer = room.players[room.currentPlayerIdx]
+    const currentQuestion = currentPlayer.receivedQuestions.find(q => q.id === question.id);
+    if (!currentQuestion) throw new Error('Current Question not found');
+    currentQuestion.isAnswered = true
+
+    // Select the next player and question to be displayed to all users
+    room.currentPlayerIdx += 1;
+
+    // Once we reach the last player in the room for given round
+    // increment currentRound and compare it with room.rounds
+    if (room.currentPlayerIdx === room.players.length) {
+      room.currentRound += 1
+      if (room.currentRound > room.rounds) {
+        console.log("Finish the game here for room: ", room.code)
+        // Emit finish game event to all users
+        room.gameState = "finished"
+        io.to(room.code).emit('finished_game_state', { room });
+      } else {
+        room.currentPlayerIdx = 0
+      }
+    }
+    // Get current player and one unanswered question from their received questions
+    // Send it to all users
+    if (room.currentRound <= room.rounds) {
+      emitCurrentPQToAllPlayers(room)
+    }
+  });
+
+  const emitCurrentPQToAllPlayers = (room: Room) => {
+    const currentPlayer = room.players[room.currentPlayerIdx]
+    const availableQuestions = currentPlayer.receivedQuestions.filter(q => !q.isAnswered);
+    if (availableQuestions.length === 0) {
+      // TODO: For this edge case, perhaps skip this player instead?
+      throw new Error('Player has no unanswered questions');
+    }
+    const currentQuestion = availableQuestions[0];
+    io.to(room.code).emit('current_player_and_question', { room, currentPlayer, currentQuestion });
+  }
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
     io.to(roomCode).emit('emit_all_players', { players });
