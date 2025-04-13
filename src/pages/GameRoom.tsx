@@ -12,7 +12,8 @@ const GameRoom = () => {
   // key = userId, value = question being sent to userId
   const [questionsMap, setQuestionsMap] = useState<Record<string, string>>({});
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
-  const [currentReceivedQuestions, setCurrentReceivedQuestions] = useState<Question[] | null>(null);
+  const [currentAnsweringPlayer, setCurrentAnsweringPlayer] = useState<Player | null>(null);
+  const [currentQuestionBeingAnswered, setCurrentQuestionBeingAnswered] = useState<Question | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
 
@@ -111,16 +112,28 @@ const GameRoom = () => {
     });
   });
 
-  // currentPlayer will receive their assigned questions
-  socket.on('received_questions', (returnObj: Map<string, GameState>) => {
-    console.log('roomObj:', returnObj);
-    // Update gameState in useState and local storage to 'submitting'
+  socket.on('current_player_and_question', (returnObj) => {
+    console.log("current_player_and_question: ", returnObj)
     setGameState(returnObj["room"].gameState)
     localStorage.setItem('gameState', returnObj["room"].gameState);
 
-    console.log('Received questions:', returnObj["questions"]);
-    setCurrentReceivedQuestions(returnObj["questions"])
+    console.log('Current question:', returnObj["currentQuestion"]);
+    setCurrentQuestionBeingAnswered(returnObj["currentQuestion"])
+
+    console.log('Current player:', returnObj["currentPlayer"]);
+    setCurrentAnsweringPlayer(returnObj["currentPlayer"])
   });
+
+  // currentPlayer will receive their assigned questions
+  // socket.on('received_questions', (returnObj: Map<string, GameState>) => {
+  //   console.log('roomObj:', returnObj);
+  //   // Update gameState in useState and local storage to 'submitting'
+  //   setGameState(returnObj["room"].gameState)
+  //   localStorage.setItem('gameState', returnObj["room"].gameState);
+
+  //   console.log('Received questions:', returnObj["questions"]);
+  //   setCurrentReceivedQuestions(returnObj["questions"])
+  // });
 
   // Once all players have submitted questions, server will send event to host
   // notifying all players have submitted questions
@@ -191,7 +204,7 @@ const GameRoom = () => {
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Room: {roomCode}</h2>
-              <p className="text-gray-600">Current Player: {currentPlayer?.name}</p>
+              <p className="text-gray-600">Player: {currentPlayer?.name}</p>
               <p className="text-gray-600">Game State: {gameState}</p>
             </div>
             <div className="text-right">
@@ -280,15 +293,14 @@ const GameRoom = () => {
 
         {gameState === 'playing' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4">People asked you these questions:</h3>
-            {/* Display Current User's Received Questions Here */}
-            {currentReceivedQuestions?.map((question) => (
-              <div key={question.id} className="p-3 mb-2 border border-gray-200 rounded">
-                {question.text}
+            {currentAnsweringPlayer != null && (
+              <h3 className="text-xl font-semibold mb-4">{currentAnsweringPlayer.name} was asked:</h3>
+            )}
+            {/* Display Current Selected Player and their current question here */}
+            {currentQuestionBeingAnswered != null && (
+              <div key={currentQuestionBeingAnswered.id} className="p-3 mb-2 border border-gray-200 rounded">
+                {currentQuestionBeingAnswered.text}
               </div>
-            ))}
-            {currentReceivedQuestions == null && (
-              <p className="text-gray-500 italic">No questions yet.</p>
             )}
           </div>
         )}

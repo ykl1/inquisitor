@@ -1,5 +1,16 @@
 // Types
-export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';
+export interface Room {
+  code: string;
+  hostId: string;
+  rounds: number;
+  enableGuessing: boolean;
+  players: Player[];
+  gameState: GameState;
+  questions: Question[];
+  totalPlayersThatSubmittedQuestions: number;
+  currentRound: number;
+  currentPlayerIdx: number;
+}
 
 export interface Player {
   id: string;
@@ -23,13 +34,4 @@ export type Question = {
   isAnswered: boolean;
 };
 
-export interface Room {
-  code: string;
-  hostId: string;
-  rounds: number;
-  enableGuessing: boolean;
-  players: Player[];
-  gameState: GameState;
-  questions: Question[];
-  totalPlayersThatSubmittedQuestions: number;
-}
+export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';

@@ -7,6 +7,8 @@ export interface Room {
   gameState: GameState;
   questions: Question[];
   totalPlayersThatSubmittedQuestions: number;
+  currentRound: number;
+  currentPlayerIdx: number;
 }
 
 export interface Player {
