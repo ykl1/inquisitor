@@ -31,6 +31,10 @@ export const useCreateRoom = () => {
           localStorage.setItem('hasSubmittedQuestions', "false");
           // Field only applies to host
           localStorage.setItem('all_submitted', "false");
+          localStorage.setItem('currentAnsweringPlayerId', "");
+          localStorage.setItem('currentAnsweringPlayerName', "");
+          localStorage.setItem('currentQuestionBeingAnsweredId', "");
+          localStorage.setItem('currentQuestionBeingAnsweredName', "");
           
           navigate(`/room/${response.room.code}`);
         } else {
@@ -68,6 +72,10 @@ export const useJoinRoom = () => {
           localStorage.setItem('gameState', response.room.gameState);
           localStorage.setItem('isHost', response.player.isHost);
           localStorage.setItem('hasSubmittedQuestions', "false");
+          localStorage.setItem('currentAnsweringPlayerId', "");
+          localStorage.setItem('currentAnsweringPlayerName', "");
+          localStorage.setItem('currentQuestionBeingAnsweredId', "");
+          localStorage.setItem('currentQuestionBeingAnsweredName', "");
           
           navigate(`/room/${roomCode}`);
         } else {

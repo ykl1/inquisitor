@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { socket } from '../utils/socket';
 import { Socket } from 'socket.io-client';
-import { GameState, Player, Question } from './types';
+import { CurrentAnsweringPlayer, CurrentQuestionBeingAnswered, GameState, Player, Question } from './types';
 
 const GameRoom = () => {
   const { roomCode } = useParams();  
@@ -12,8 +12,8 @@ const GameRoom = () => {
   // key = userId, value = question being sent to userId
   const [questionsMap, setQuestionsMap] = useState<Record<string, string>>({});
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
-  const [currentAnsweringPlayer, setCurrentAnsweringPlayer] = useState<Player | null>(null);
-  const [currentQuestionBeingAnswered, setCurrentQuestionBeingAnswered] = useState<Question | null>(null);
+  const [currentAnsweringPlayer, setCurrentAnsweringPlayer] = useState<CurrentAnsweringPlayer | null>(null);
+  const [currentQuestionBeingAnswered, setCurrentQuestionBeingAnswered] = useState<CurrentQuestionBeingAnswered | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
 
@@ -31,6 +31,10 @@ const GameRoom = () => {
     const allSubmitted = localStorage.getItem('all_submitted')
     // this will be [] before submission game state
     const assignedTargets = storedTargets ? JSON.parse(storedTargets) : [];
+    const currAnsweringPlayerId = localStorage.getItem('currentAnsweringPlayerId');
+    const currAnsweringPlayerName = localStorage.getItem('currentAnsweringPlayerName');
+    const currQuestionBeingAnsweredId = localStorage.getItem('currentQuestionBeingAnsweredId');
+    const currQuestionBeingAnsweredName = localStorage.getItem('currentQuestionBeingAnsweredName');
     
     if (playerId && playerName && roomCode && isHost) {
       setIsHost(JSON.parse(isHost.toLowerCase()))
@@ -49,6 +53,7 @@ const GameRoom = () => {
       console.log("couldn't find player data in local storage")
     }
     setGameState(currGameState)
+
     // Connect socket if not already connected
     if (!socket.connected) {
       console.log('Connected with ID:', socket.id);
@@ -56,8 +61,27 @@ const GameRoom = () => {
     }
 
     // In case host refreshes when all players have submitted. So they can click on start playing button.
-    if (allSubmitted) {
+    if (gameState === "submitting" && allSubmitted) {
       setHasEveryoneSubmitted(toBoolean(allSubmitted))
+    }
+    // In case player refreshes page during playing state, the current question being answered
+    // and current player answering the question persists in display.
+    if (gameState === "playing" && 
+        currAnsweringPlayerId && 
+        currAnsweringPlayerName && 
+        currQuestionBeingAnsweredId && 
+        currQuestionBeingAnsweredName) {
+      const currentAnsweringPlayer: CurrentAnsweringPlayer = {
+        id: currAnsweringPlayerId,
+        name: currAnsweringPlayerName
+      };
+      setCurrentAnsweringPlayer(currentAnsweringPlayer)
+
+      const currentQuestionBeingAnswered: CurrentQuestionBeingAnswered = {
+        id: currQuestionBeingAnsweredId,
+        text: currQuestionBeingAnsweredName,
+      };
+      setCurrentQuestionBeingAnswered(currentQuestionBeingAnswered)
     }
 
     socket.on('connect', () => {
@@ -117,11 +141,23 @@ const GameRoom = () => {
     setGameState(returnObj["room"].gameState)
     localStorage.setItem('gameState', returnObj["room"].gameState);
 
-    console.log('Current question:', returnObj["currentQuestion"]);
-    setCurrentQuestionBeingAnswered(returnObj["currentQuestion"])
+    console.log('Current player:', returnObj["currentPlayerId"], returnObj["currentPlayerName"]);
+    const currentAnsweringPlayer: CurrentAnsweringPlayer = {
+      id: returnObj["currentPlayerId"],
+      name: returnObj["currentPlayerName"],
+    };
+    setCurrentAnsweringPlayer(currentAnsweringPlayer)
+    localStorage.setItem('currentAnsweringPlayerId', returnObj["currentPlayerId"]);
+    localStorage.setItem('currentAnsweringPlayerName', returnObj["currentPlayerName"]);
 
-    console.log('Current player:', returnObj["currentPlayer"]);
-    setCurrentAnsweringPlayer(returnObj["currentPlayer"])
+    console.log('Current question:', returnObj["currentQuestionId"], returnObj["currentQuestionText"]);
+    const currentQuestionBeingAnswered: CurrentQuestionBeingAnswered = {
+      id: returnObj["currentQuestionId"],
+      text: returnObj["currentQuestionText"],
+    };
+    setCurrentQuestionBeingAnswered(currentQuestionBeingAnswered)
+    localStorage.setItem('currentQuestionBeingAnsweredId', returnObj["currentQuestionId"]);
+    localStorage.setItem('currentQuestionBeingAnsweredName', returnObj["currentQuestionText"]);
   });
 
   // Once all players have submitted questions, server will send event to host

@@ -34,4 +34,14 @@ export type Question = {
   isAnswered: boolean;
 };
 
+export type CurrentQuestionBeingAnswered = {
+  id: string;
+  text: string;
+};
+
+export type CurrentAnsweringPlayer = {
+  id: string;
+  name: string;
+};
+
 export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';

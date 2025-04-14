@@ -161,39 +161,9 @@ io.on('connection', (socket) => {
     
     // Get current player and one unanswered question from their received questions:
     emitCurrentPQToAllPlayers(room)
-
-    /*
-    TODO:
-      When host clicks start game on the client side, it'll send a socket event to
-      server. When server receives this event
-        - Sort the order of room.players
-            - Do this only this time, so that for each round the ordering is consistent
-        - In room, we will need to have a field for currentRound. Initialized to 1
-        - In room, we will need to have a field for currentPlayerIdx. Initialized to 0
-        - Get the currentPlayer from room.players[currentPlayerIdx]
-        - A question amongst currentPlayer.receivedQuestions where isAnswered=false is retrieved
-        - We emit this question + currentPlayer to all players in the room, so it can be displayed
-        - Send room state as well to update the state to playing.
-
-      After player clicks on answer button on client-side (indicating they answered the question), 
-      it'll send a socket event to server. When server receives this event:
-        - The current question that player answered will have the isAnswered field updated to true
-        - The currentPlayerIdx will increment.
-            - The next player will be retrieved from room.players[currentPlayerIdx]
-            - A question amongst player.receivedQuestions where isAnswered=false is retrieved
-            - We emit this question + currentPlayer to all players in the room, so it can be displayed
-
-        - Once last player in round answers, the currentPlayerIdx will increment and equal rooms.players.length.
-          At this point, we will increment currentRound.
-          - if currentRound > rounds we finish game + send a finished game event to room players
-          - if currentRound <= rounds, we reset the currentPlayerIdx to 0.
-            - We follow the same flow of getting the player, their available question, then emit that to the room.
-      
-      Implement persistence of current answering player and current question being asked.
-    */
   });
 
-  socket.on('answered_question', ({ roomCode, question }: { roomCode: string, player: Player, question: Question }) => {
+  socket.on('answered_question', ({ roomCode, question }) => {
     const room = roomManager.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
 
@@ -228,13 +198,22 @@ io.on('connection', (socket) => {
 
   const emitCurrentPQToAllPlayers = (room: Room) => {
     const currentPlayer = room.players[room.currentPlayerIdx]
+    const currentPlayerName = currentPlayer.name
+    const currentPlayerId = currentPlayer.id
+
     const availableQuestions = currentPlayer.receivedQuestions.filter(q => !q.isAnswered);
     if (availableQuestions.length === 0) {
       // TODO: For this edge case, perhaps skip this player instead?
       throw new Error('Player has no unanswered questions');
     }
     const currentQuestion = availableQuestions[0];
-    io.to(room.code).emit('current_player_and_question', { room, currentPlayer, currentQuestion });
+    const currentQuestionText = currentQuestion.text
+    const currentQuestionId = currentQuestion.id
+    io.to(room.code).emit('current_player_and_question', { room, 
+                                                           currentPlayerId,
+                                                           currentPlayerName,
+                                                           currentQuestionId, 
+                                                           currentQuestionText });
   }
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
