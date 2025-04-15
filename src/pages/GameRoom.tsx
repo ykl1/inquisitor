@@ -21,6 +21,8 @@ const GameRoom = () => {
   const [currentQuestionBeingAnswered, setCurrentQuestionBeingAnswered] = useState<CurrentQuestionBeingAnswered | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
+  // Minimum number of players in room is 3
+  const hasEnoughPlayers = players.length >= 3;
 
   useEffect(() => {
     // Check for existing session data
@@ -179,9 +181,6 @@ const GameRoom = () => {
     setGameState(returnObj["room"].gameState)
     localStorage.setItem('gameState', returnObj["room"].gameState);
   });
-
-  // Minimum number of players in room is 3
-  const hasEnoughPlayers = players.length >= 3;
 
   const startSubmissionState = () => {
     socket.emit('host_start_submission_state', {

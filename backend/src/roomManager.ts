@@ -46,6 +46,10 @@ class RoomManager {
     return room;
   }
 
+  deleteRoom(roomCode: string) {
+    this.rooms.delete(roomCode)
+  }
+
   getRoom(roomCode: string): Room | undefined {
     return this.rooms.get(roomCode);
   }

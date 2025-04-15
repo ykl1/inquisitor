@@ -187,6 +187,7 @@ io.on('connection', (socket) => {
         // Emit finish game event to all users
         room.gameState = "finished"
         io.to(room.code).emit('finished_game_state', { room });
+        cleanUpRoom(room)
       } else {
         room.currentPlayerIdx = 0
       }
@@ -197,6 +198,12 @@ io.on('connection', (socket) => {
       emitCurrentPQToAllPlayers(room)
     }
   });
+  
+  const cleanUpRoom = (room: Room) => {
+    console.log(`Start cleaning up room: ${room.code}`)
+    roomManager.deleteRoom(room.code)
+    console.log(`Cleaned Up Room: ${room.code}`)
+  }
 
   const emitCurrentPQToAllPlayers = (room: Room) => {
     const currentPlayer = room.players[room.currentPlayerIdx]
