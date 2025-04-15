@@ -35,6 +35,8 @@ io.on('connection', (socket) => {
       const room = roomManager.getRoom(roomCode);
       if (!room) throw new Error('Room not found');
 
+      if (room.gameState != "waiting") throw new Error(`Cannot join room ${roomCode}. Room is currently playing a game`)
+
       const player = roomManager.addPlayer(roomCode, playerName, socket.id);
       socket.join(roomCode);
 
