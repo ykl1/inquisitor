@@ -3,9 +3,14 @@ import { useParams } from 'react-router-dom';
 import { socket } from '../utils/socket';
 import { Socket } from 'socket.io-client';
 import { CurrentAnsweringPlayer, CurrentQuestionBeingAnswered, GameState, Player, Question } from './types';
+import { useNavigate } from 'react-router-dom';
 
 const GameRoom = () => {
-  const { roomCode } = useParams();  
+  const { roomCode } = useParams();
+  const navigate = useNavigate();
+  const handleHomeClick = () => {
+    navigate("/");
+  };
   const [currentSocket, setCurrentSocket] = useState<Socket | null>(null);
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [players, setPlayers] = useState<Player[]>([]);
@@ -352,7 +357,13 @@ const GameRoom = () => {
 
         {gameState === 'finished' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <h3 className="text-xl font-semibold mb-4">Game Finished!</h3>
+            <h3 className="text-xl font-semibold mb-4">Game Over</h3>
+              <button
+                onClick={handleHomeClick}
+                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
+              >
+                Home
+              </button>
           </div>
         )}
       </div>
