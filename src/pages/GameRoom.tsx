@@ -332,16 +332,7 @@ const GameRoom = () => {
                 );
               })}
               <button
-                onClick={() => {
-                  // Validate all questions before submission
-                  const allValid = currentPlayer?.assignedTargets.every(target => {
-                    const text = questionsMap[target.id] || '';
-                    return text.trim().length >= 3;
-                  });
-                  if (allValid) {
-                    submitQuestions(questionsMap);
-                  }
-                }}
+                onClick={() => submitQuestions(questionsMap)}
                 className={`px-4 py-2 text-white rounded-md transition-colors ${
                   currentPlayer?.hasSubmittedQuestions || !currentPlayer?.assignedTargets.every(target => {
                     const text = questionsMap[target.id] || '';
