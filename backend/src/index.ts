@@ -5,6 +5,7 @@ import { roomManager } from './roomManager';
 import { Player, Question, Room } from './types';
 
 const app = express();
+const MAX_PLAYER_LIMIT = 15;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
@@ -35,7 +36,8 @@ io.on('connection', (socket) => {
       const room = roomManager.getRoom(roomCode);
       if (!room) throw new Error('Room not found');
 
-      if (room.gameState != "waiting") throw new Error(`Cannot join room ${roomCode}. Room is currently playing a game`)
+      if (room.players.length == MAX_PLAYER_LIMIT) throw new Error(`Cannot join room ${roomCode}. The room reached its max capacity of ${MAX_PLAYER_LIMIT} players`)
+      if (room.gameState != "waiting") throw new Error(`Cannot join room ${roomCode}. The room is currently playing a game`)
 
       const player = roomManager.addPlayer(roomCode, playerName, socket.id);
       socket.join(roomCode);
