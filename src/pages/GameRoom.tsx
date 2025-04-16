@@ -297,36 +297,67 @@ const GameRoom = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">Submit Your Questions</h3>
             <div className="space-y-4">
-              {currentPlayer?.assignedTargets.map(assignedTarget => (
-                <div
-                key={assignedTarget.id}
-                className="flex flex-col p-3 bg-gray-50 rounded-md gap-2"
-                >
-                <span className="font-medium">{assignedTarget.name}</span>
-
-                <textarea
-                  value={questionsMap[assignedTarget.id] || ''}
-                  onChange={(e) => setQuestionsMap(prev => ({
-                    ...prev,
-                    [assignedTarget.id]: e.target.value
-                  }))}
-                  placeholder="Type your question here..."
-                  className={`w-full p-2 border rounded-md ${currentPlayer.hasSubmittedQuestions ? 'bg-gray-100 text-gray-500' : ''}`}
-                  rows={3}
-                  disabled={currentPlayer.hasSubmittedQuestions}
-                />
-              </div>
-              ))}
+              {currentPlayer?.assignedTargets.map(assignedTarget => {
+                const questionText = questionsMap[assignedTarget.id] || '';
+                const isValid = questionText.trim().length >= 3;
+                return (
+                  <div
+                    key={assignedTarget.id}
+                    className="flex flex-col p-3 bg-gray-50 rounded-md gap-2"
+                  >
+                    <span className="font-medium">{assignedTarget.name}</span>
+                    <textarea
+                      value={questionText}
+                      onChange={(e) => setQuestionsMap(prev => ({
+                        ...prev,
+                        [assignedTarget.id]: e.target.value
+                      }))}
+                      placeholder="Type your question here (minimum 3 characters)..."
+                      className={`w-full p-2 border rounded-md ${
+                        currentPlayer.hasSubmittedQuestions 
+                          ? 'bg-gray-100 text-gray-500' 
+                          : !isValid && questionText.length > 0 
+                            ? 'border-red-500' 
+                            : ''
+                      }`}
+                      rows={3}
+                      disabled={currentPlayer.hasSubmittedQuestions}
+                    />
+                    {!isValid && questionText.length > 0 && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Please enter at least 3 characters
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
               <button
-                onClick={() => submitQuestions(questionsMap)}
+                onClick={() => {
+                  // Validate all questions before submission
+                  const allValid = currentPlayer?.assignedTargets.every(target => {
+                    const text = questionsMap[target.id] || '';
+                    return text.trim().length >= 3;
+                  });
+                  if (allValid) {
+                    submitQuestions(questionsMap);
+                  }
+                }}
                 className={`px-4 py-2 text-white rounded-md transition-colors ${
-                  currentPlayer?.hasSubmittedQuestions 
-                    ? 'bg-gray-400 cursor-not-allowed' 
+                  currentPlayer?.hasSubmittedQuestions || !currentPlayer?.assignedTargets.every(target => {
+                    const text = questionsMap[target.id] || '';
+                    return text.trim().length >= 3;
+                  })
+                    ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-indigo-600 hover:bg-indigo-700'
                 }`}
-                disabled={currentPlayer?.hasSubmittedQuestions || false}
+                disabled={currentPlayer?.hasSubmittedQuestions || !currentPlayer?.assignedTargets.every(target => {
+                  const text = questionsMap[target.id] || '';
+                  return text.trim().length >= 3;
+                })}
               >
-                {currentPlayer?.hasSubmittedQuestions ? 'Questions Submitted' : 'Submit Questions'}
+                {currentPlayer?.hasSubmittedQuestions
+                  ? 'Questions Submitted'
+                  : 'Submit Questions'}
               </button>
             </div>
           </div>
