@@ -6,7 +6,7 @@ const CreateRoom = () => {
   const [formData, setFormData] = useState({
     playerName: '',
     rounds: 2,
-    enableGuessing: true,
+    enableGuessing: false,
   });
 
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
