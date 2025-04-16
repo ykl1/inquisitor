@@ -9,7 +9,7 @@ class RoomManager {
     
     do {
       code = Array.from(
-        { length: 6 },
+        { length: 4 },
         () => characters[Math.floor(Math.random() * characters.length)]
       ).join('');
     } while (this.rooms.has(code));
