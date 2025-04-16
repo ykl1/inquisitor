@@ -56,25 +56,12 @@ const CreateRoom = () => {
               onChange={(e) => setFormData({ ...formData, rounds: Number(e.target.value) })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             >
-              {[1, 2, 3, 4, 5].map((num) => (
+              {[2, 3, 4, 5].map((num) => (
                 <option key={num} value={num}>
                   {num} {num === 1 ? 'Round' : 'Rounds'}
                 </option>
               ))}
             </select>
-          </div>
-
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="enableGuessing"
-              checked={formData.enableGuessing}
-              onChange={(e) => setFormData({ ...formData, enableGuessing: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            />
-            <label htmlFor="enableGuessing" className="ml-2 block text-sm text-gray-700">
-              Enable question asker guessing
-            </label>
           </div>
 
           <button
