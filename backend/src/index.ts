@@ -46,10 +46,6 @@ io.on('connection', (socket) => {
         Array.from(io.sockets.adapter.rooms.get(roomCode) || []));
 
       callback({ success: true, room, player });
-
-      // Notify all players in the room of all current players
-      const players = room.players
-      emitAllPlayers(roomCode, players)      
     } catch (error) {
       callback({ success: false, error: error.message });
     }
@@ -199,6 +195,13 @@ io.on('connection', (socket) => {
     if (room.currentRound <= room.rounds) {
       emitCurrentPQToAllPlayers(room)
     }
+  });
+
+  // emit all players to each player in room
+  socket.on('get_current_players', ({ roomCode }) => {
+    const room = roomManager.getRoom(roomCode);
+    if (!room) throw new Error('Room not found');
+    emitAllPlayers(room.code, room.players)
   });
   
   const cleanUpRoom = (room: Room) => {

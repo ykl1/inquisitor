@@ -42,7 +42,7 @@ const GameRoom = () => {
     const currAnsweringPlayerName = localStorage.getItem('currentAnsweringPlayerName');
     const currQuestionBeingAnsweredId = localStorage.getItem('currentQuestionBeingAnsweredId');
     const currQuestionBeingAnsweredName = localStorage.getItem('currentQuestionBeingAnsweredName');
-    
+
     if (playerId && playerName && roomCode && isHost) {
       setIsHost(JSON.parse(isHost.toLowerCase()))
 
@@ -65,6 +65,10 @@ const GameRoom = () => {
     if (!socket.connected) {
       console.log('Connected with ID:', socket.id);
       socket.connect();
+    }
+
+    if (gameState === "waiting") {
+      socket.emit('get_current_players', { roomCode });
     }
 
     // In case host refreshes when all players have submitted. So they can click on start playing button.
