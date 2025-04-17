@@ -21,6 +21,7 @@ const GameRoom = () => {
   const [currentQuestionBeingAnswered, setCurrentQuestionBeingAnswered] = useState<CurrentQuestionBeingAnswered | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
+  const [currentRounds, setCurrentRounds] = useState(0);
   // Minimum number of players in room is 3
   const hasEnoughPlayers = players.length >= 3;
 
@@ -42,6 +43,7 @@ const GameRoom = () => {
     const currAnsweringPlayerName = localStorage.getItem('currentAnsweringPlayerName');
     const currQuestionBeingAnsweredId = localStorage.getItem('currentQuestionBeingAnsweredId');
     const currQuestionBeingAnsweredName = localStorage.getItem('currentQuestionBeingAnsweredName');
+    const currNumberOfRounds = localStorage.getItem('numberOfRounds');
 
     if (playerId && playerName && roomCode && isHost) {
       setIsHost(JSON.parse(isHost.toLowerCase()))
@@ -68,6 +70,9 @@ const GameRoom = () => {
     }
 
     if (gameState === "waiting") {
+      if (currNumberOfRounds) {
+        setCurrentRounds(Number(currNumberOfRounds))
+      }
       socket.emit('get_current_players', { roomCode });
     }
 
@@ -259,13 +264,20 @@ const GameRoom = () => {
             <div className="text-right">
               <p className="text-sm text-gray-600">Players: {players.length}</p>
               {isHost && gameState === 'waiting' && (
-                <button
-                  onClick={startSubmissionState}
-                  disabled={!hasEnoughPlayers}
-                  className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
-                >
-                  Start Submitting Questions~
-                </button>
+                <>
+                  {players.length <= currentRounds && (
+                    <p className="text-red-400 mt-1">
+                      Party needs {currentRounds + 1}+ players to start~
+                    </p>
+                  )}
+                  <button
+                    onClick={startSubmissionState}
+                    disabled={!hasEnoughPlayers || !(currentRounds < players.length)}
+                    className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
+                  >
+                    Start Submitting Questions
+                  </button>
+                </>
               )}
               {isHost && gameState === 'submitting' && (
                 <button
@@ -273,7 +285,7 @@ const GameRoom = () => {
                   disabled={!hasEveryoneSubmitted}
                   className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
                 >
-                  Start Playing~
+                  Start Playing
                 </button>
               )}
             </div>
