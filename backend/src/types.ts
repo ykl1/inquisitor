@@ -34,4 +34,4 @@ export interface Question {
   isAnswered: boolean;
 }
 
-export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';
+export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished' | "error";

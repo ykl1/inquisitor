@@ -191,6 +191,14 @@ const GameRoom = () => {
     localStorage.setItem('gameState', returnObj["room"].gameState);
   });
 
+  // Set Game State to error
+  socket.on('server_error', (returnObj) => {
+    console.log(returnObj["gameState"])
+    console.log(returnObj["errorMessage"])
+    setGameState(returnObj["gameState"])
+    localStorage.setItem('gameState', returnObj["gameState"]);
+  });
+
   const startSubmissionState = () => {
     socket.emit('host_start_submission_state', {
       roomCode: roomCode
@@ -399,8 +407,25 @@ const GameRoom = () => {
                 onClick={handleHomeClick}
                 className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
               >
-                Home
+                Return to Home
               </button>
+          </div>
+        )}
+
+        {gameState === 'error' && (
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div className="text-center">
+              <h3 className="text-xl font-semibold mb-4 text-red-600">Oops! Something went wrong</h3>
+              <p className="text-gray-700 mb-6">
+                There was an unexpected issue with the game server. Please try again later.
+              </p>
+              <button
+                onClick={handleHomeClick}
+                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Return to Home
+              </button>
+            </div>
           </div>
         )}
       </div>

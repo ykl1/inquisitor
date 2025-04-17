@@ -44,4 +44,4 @@ export type CurrentAnsweringPlayer = {
   name: string;
 };
 
-export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished';
+export type GameState = 'waiting' | 'submitting' | 'playing' | 'finished' | "error";
