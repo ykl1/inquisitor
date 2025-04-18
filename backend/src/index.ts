@@ -128,10 +128,8 @@ io.on('connection', (socket) => {
     
       // Iterate over the sent questions and add them to the targetPlayers' receivedQuestions field
       questions.forEach(question => {
-        console.log(question)
         const player = room.players.find(p => p.id === question.targetPlayerId);
         if (player) {
-          console.log(`Found player ${player.id}: ${player.name}`)
           player.receivedQuestions.push(question)
         } else {
           console.log(`No player found for ${question.targetPlayerId}`);

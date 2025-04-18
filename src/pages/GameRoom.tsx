@@ -139,13 +139,11 @@ const GameRoom = () => {
   
   // Get all current players upon new join
   socket.on('emit_all_players', (currentPlayersInRoom) => {
-    console.log('Received event:', currentPlayersInRoom);
     setPlayers(currentPlayersInRoom.players)
   });
 
   // Set game state to submission phase 
   socket.on('submission_state', (roomObj) => {
-    console.log('Received submission game event:', roomObj);
     // Update gameState in useState and local storage to 'submitting'
     setGameState(roomObj["room"].gameState)
     localStorage.setItem('gameState', roomObj["room"].gameState);
@@ -167,11 +165,9 @@ const GameRoom = () => {
   });
 
   socket.on('current_player_and_question', (returnObj) => {
-    console.log("current_player_and_question: ", returnObj)
     setGameState(returnObj["room"].gameState)
     localStorage.setItem('gameState', returnObj["room"].gameState);
 
-    console.log('Current player:', returnObj["currentPlayerId"], returnObj["currentPlayerName"]);
     const currentAnsweringPlayer: CurrentAnsweringPlayer = {
       id: returnObj["currentPlayerId"],
       name: returnObj["currentPlayerName"],
@@ -180,7 +176,6 @@ const GameRoom = () => {
     localStorage.setItem('currentAnsweringPlayerId', returnObj["currentPlayerId"]);
     localStorage.setItem('currentAnsweringPlayerName', returnObj["currentPlayerName"]);
 
-    console.log('Current question:', returnObj["currentQuestionId"], returnObj["currentQuestionText"]);
     const currentQuestionBeingAnswered: CurrentQuestionBeingAnswered = {
       id: returnObj["currentQuestionId"],
       text: returnObj["currentQuestionText"],
@@ -193,14 +188,12 @@ const GameRoom = () => {
   // Once all players have submitted questions, server will send event to host
   // notifying all players have submitted questions
   socket.on('all_players_have_submitted', (returnObj) => {
-    console.log(returnObj["all_submitted"])
     setHasEveryoneSubmitted(returnObj["all_submitted"])
     localStorage.setItem('all_submitted', returnObj["all_submitted"].toString());
   });
 
   // Set Game State to finished
   socket.on('finished_game_state', (returnObj) => {
-    console.log(returnObj["room"])
     setGameState(returnObj["room"].gameState)
     localStorage.setItem('gameState', returnObj["room"].gameState);
   });
@@ -235,7 +228,6 @@ const GameRoom = () => {
 
   // Send questions to the backend server. 
   const submitQuestions = (questionsMap: Record<string, string>) => {
-    console.log("Sending questions to server: ", questionsMap)
     // update currentPlayer to have hasSubmittedQuestions field set to true
     setCurrentPlayer(prevPlayer => {
       if (!prevPlayer) {

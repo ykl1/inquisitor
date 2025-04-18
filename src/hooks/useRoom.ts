@@ -21,7 +21,6 @@ export const useCreateRoom = () => {
       { playerName, rounds, enableGuessing }, 
       (response: { success: boolean; room?: any; error?: string }) => {
         setIsLoading(false);
-        console.log(response.room)
         if (response.success && response.room) {
           localStorage.setItem('playerId', response.room.hostId);
           localStorage.setItem('playerName', playerName);
@@ -65,7 +64,6 @@ export const useJoinRoom = () => {
       { roomCode, playerName }, 
       (response: { success: boolean; room?: any; player?: any; error?: string }) => {
         setIsLoading(false);
-        console.log(response.room)
         if (response.success && response.room && response.player) {
           localStorage.setItem('playerId', response.player.id);
           localStorage.setItem('playerName', playerName);
