@@ -332,6 +332,7 @@ const GameRoom = () => {
                   >
                     <span className="font-medium">{assignedTarget.name}</span>
                     <textarea
+                      maxLength={1200}
                       value={questionText}
                       onChange={(e) => setQuestionsMap(prev => ({
                         ...prev,
