@@ -9,7 +9,8 @@ const MAX_PLAYER_LIMIT = 15;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "http://localhost:5173", // Your Vite dev server
+    // origin: "http://localhost:5173", // Your Vite dev server
+    origin: "*", // restrict this origin after setting up frontend domain
     methods: ["GET", "POST"]
   }
 });
