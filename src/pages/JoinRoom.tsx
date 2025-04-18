@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useJoinRoom } from '../hooks/useRoom';
 
 const JoinRoom = () => {
@@ -8,7 +8,7 @@ const JoinRoom = () => {
     roomCode: '',
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await joinRoom(formData.playerName, formData.roomCode);
   };

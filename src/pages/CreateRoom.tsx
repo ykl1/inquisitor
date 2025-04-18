@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCreateRoom } from '../hooks/useRoom';
 
 const CreateRoom = () => {

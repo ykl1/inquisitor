@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { socket } from '../utils/socket';
 import { Socket } from 'socket.io-client';
@@ -112,6 +112,7 @@ const GameRoom = () => {
       }
       // set the current socket in state
       setCurrentSocket(socket);
+      console.log(currentSocket)
       // Get all current players upon new join
       socket.on('rejoin_success', (playerName) => {
         console.log('Successfully rejoined:', playerName);
@@ -130,7 +131,7 @@ const GameRoom = () => {
   });
 
   // Set game state to submission phase 
-  socket.on('submission_state', (roomObj: Map<string, GameState>) => {
+  socket.on('submission_state', (roomObj) => {
     console.log('Received submission game event:', roomObj);
     // Update gameState in useState and local storage to 'submitting'
     setGameState(roomObj["room"].gameState)
@@ -139,7 +140,7 @@ const GameRoom = () => {
     // Get the currentPlayer's assignedTargets and update 
     // local storage and currentPlayer useState
     const playerId = localStorage.getItem('playerId')
-    const currPlayer = roomObj["room"].players.find(p => p.id === playerId);
+    const currPlayer = roomObj["room"].players.find((p: Player) => p.id === playerId);
     localStorage.setItem('assignedTargets', JSON.stringify(currPlayer.assignedTargets))
     setCurrentPlayer(prevPlayer => {
       if (!prevPlayer) {
@@ -220,7 +221,7 @@ const GameRoom = () => {
   }
 
   // Send questions to the backend server. 
-  const submitQuestions = (questionsMap) => {
+  const submitQuestions = (questionsMap: Record<string, string>) => {
     console.log("Sending questions to server: ", questionsMap)
     // update currentPlayer to have hasSubmittedQuestions field set to true
     setCurrentPlayer(prevPlayer => {
