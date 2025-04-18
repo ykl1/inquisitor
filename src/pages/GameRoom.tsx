@@ -22,6 +22,19 @@ const GameRoom = () => {
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
   const [currentRounds, setCurrentRounds] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const copyToClipboard = () => {
+    if (roomCode) {
+      navigator.clipboard.writeText(roomCode)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 30000);
+      })
+      .catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+  };
   // Minimum number of players in room is 3
   const hasEnoughPlayers = players.length >= 3;
 
@@ -266,7 +279,23 @@ const GameRoom = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Room: {roomCode}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-gray-900">Room: </h2>
+                <div 
+                  onClick={copyToClipboard} 
+                  className="text-2xl font-bold text-gray-900 cursor-pointer hover:bg-gray-100 px-2 py-1 rounded flex items-center"
+                  title="Click to copy room code"
+                >
+                  {roomCode}
+                  {copied ? (
+                    <span className="ml-2 text-green-600 text-sm">✓ Copied!</span>
+                  ) : (
+                    <svg className="ml-2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+                    </svg>
+                  )}
+                </div>
+              </div>
               <p className="text-gray-600">Player: {currentPlayer?.name}</p>
               <p className="text-gray-600">Game State: {gameState}</p>
             </div>

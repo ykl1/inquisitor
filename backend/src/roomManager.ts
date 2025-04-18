@@ -4,16 +4,16 @@ class RoomManager {
   private rooms: Map<string, Room> = new Map();
 
   generateRoomCode(): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Removed some letters that could form offensive words
+    const digits = '23456789'; // Removed 0/1 which can look like O/I
     let code: string;
-    
     do {
-      code = Array.from(
-        { length: 4 },
-        () => characters[Math.floor(Math.random() * characters.length)]
-      ).join('');
+      // Format: letter-number-letter-number
+      code = letters[Math.floor(Math.random() * letters.length)] +
+             digits[Math.floor(Math.random() * digits.length)] +
+             letters[Math.floor(Math.random() * letters.length)] +
+             digits[Math.floor(Math.random() * digits.length)];
     } while (this.rooms.has(code));
-
     return code;
   }
 
