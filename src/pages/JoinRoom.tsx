@@ -51,7 +51,7 @@ const JoinRoom = () => {
               id="roomCode"
               value={formData.roomCode}
               onChange={(e) => setFormData({ ...formData, roomCode: e.target.value.toUpperCase() })}
-              placeholder="Enter 6-digit code"
+              placeholder="Enter 4-digit code"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 uppercase"
               maxLength={6}
               required
