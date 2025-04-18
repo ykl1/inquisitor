@@ -58,6 +58,12 @@ class RoomManager {
     const room = this.getRoom(roomCode);
     if (!room) throw new Error('Room not found');
     if (room.players.length >= 25) throw new Error('Room is full');
+
+    room.players.forEach(p => {
+      if (p.name.toLowerCase() === playerName.toLowerCase()) {
+        throw new Error(`Player ${playerName.toLowerCase()} already exists in the room. Choose a different name`);
+      }
+    });
     
     const player: Player = {
       id: Math.random().toString(36).substring(2),

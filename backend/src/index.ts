@@ -39,7 +39,6 @@ io.on('connection', (socket) => {
 
       if (room.players.length == MAX_PLAYER_LIMIT) throw new Error(`Cannot join room ${roomCode}. The room reached its max capacity of ${MAX_PLAYER_LIMIT} players`)
       if (room.gameState != "waiting") throw new Error(`Cannot join room ${roomCode}. The room is currently playing a game`)
-
       const player = roomManager.addPlayer(roomCode, playerName, socket.id);
       socket.join(roomCode);
 
