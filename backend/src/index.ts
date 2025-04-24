@@ -51,35 +51,58 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('rejoin_room', ({ playerId, playerName, roomCode }) => {
+  socket.on('rejoin_room', ({ playerId, roomCode }) => {
     try {
       // Validate room exists
       const room = roomManager.getRoom(roomCode);
-      if (!room) {
-        socket.emit('error', { message: 'Room no longer exists' });
-        return;
-      }
-      // Check if player was actually in this room before
+      if (!room) throw new Error('Room not found');
+      // Check if player was in this room before
       const existingPlayer = room.players.find(p => p.id === playerId);
       if (existingPlayer) {
-        console.log("exist")
+        console.log(`Player ${existingPlayer.id} exists`)
         // Update the socket id for this user
         existingPlayer.socketId = socket.id;
-        
         // Join the socket to the room
         socket.join(roomCode);
-
-        // Notify user of successful rejoin
-        socket.emit('rejoin_success', { playerName });
-        
-        // Notify all players in the room of all current players
-        const players = room.players
-        emitAllPlayers(roomCode, players) 
+        // Retrieve the current gameState and update the client
+        const gameState = room.gameState
+        if (gameState === "waiting") {
+          // Notify all players in the room of all current players
+          const players = room.players
+          emitAllPlayers(roomCode, players)
+        } else if (gameState === "submitting") {
+          // TODO: reduce to just necessary items to send to the client, instead of room
+          socket.emit('submission_state', { room });
+          if (room.players.length === room.totalPlayersThatSubmittedQuestions) {
+            informHostAllPlayersSubmitted(room)
+          }
+        } else if (gameState === "playing") {
+          // If reconnect during playing state, send current answering player and question to client
+          const currentPlayerId = room.currentAnsweringPlayer?.id
+          const currentPlayerName = room.currentAnsweringPlayer?.name
+          const currentQuestionId = room.currentQuestionBeingAnswered?.id
+          const currentQuestionText = room.currentQuestionBeingAnswered?.text
+          socket.emit('current_player_and_question', { room,
+                                                       currentPlayerId,
+                                                       currentPlayerName,
+                                                       currentQuestionId,
+                                                       currentQuestionText });
+        } else if (gameState === "finished") {
+          socket.emit('finished_state', { gameState });
+        } else if (gameState == "error") {
+          socket.emit('server_error', { gameState });
+        }
       } else {
-        console.log("player does not exist")
+        throw new Error('Player not found in room');
       }
     } catch (error) {
-      emitServerError(roomCode, error.message)
+      const message = error.message
+      console.log(`Server Error: ${message}`)
+      if (message == "Room not found" || message == "Player not found in room") {
+        socket.emit('server_error', { gameState: "error" });
+      } else {
+        emitServerError(roomCode, message)
+      }
     }
   });
 
@@ -112,7 +135,6 @@ io.on('connection', (socket) => {
     }
   });
 
-
   socket.on('submit_questions', ({ player, roomCode, questions }: { player: Player, roomCode: string, questions: Question[] }) => {
     try {
       const room = roomManager.getRoom(roomCode);
@@ -139,14 +161,7 @@ io.on('connection', (socket) => {
       // Check if totalPlayersThatSubmittedQuestions == total players in room
       // then notify host that they can start the game
       if (room.players.length === room.totalPlayersThatSubmittedQuestions) {
-        console.log(`All players in room ${room.code} have submitted their questions.`)
-        
-        const host = room.players.find(p => p.id === room.hostId);
-        if (!host) throw new Error('Host not found');
-
-        io.to(host.socketId).emit('all_players_have_submitted', {
-          all_submitted: true,
-        });
+        informHostAllPlayersSubmitted(room)
       }
     } catch (error) {
       emitServerError(roomCode, error.message)
@@ -197,15 +212,20 @@ io.on('connection', (socket) => {
           console.log("Finish the game here for room: ", room.code)
           // Emit finish game event to all users
           room.gameState = "finished"
-          io.to(room.code).emit('finished_game_state', { room });
-          cleanUpRoom(room)
+          io.to(room.code).emit('finished_state', { gameState: room.gameState });
+          // Gives 10 minute buffer time before cleaning up the room
+          // asynchronous and non-blocking timeout
+          setTimeout(() => {
+            cleanUpRoom(room)
+          }, 10 * 60 * 1000);
+          return;
         } else {
           room.currentPlayerIdx = 0
         }
       }
       // Get current player and one unanswered question from their received questions
       // Send it to all users
-      if (room.currentRound <= room.rounds) {
+      if (room.currentRound <= room.rounds && room.gameState !== "finished") {
         emitCurrentPQToAllPlayers(room)
       }
     } catch (error) {
@@ -213,7 +233,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // emit all players to each player in room
+  // Emit all players to each player in room
   socket.on('get_current_players', ({ roomCode }) => {
     try {
       const room = roomManager.getRoom(roomCode);
@@ -234,6 +254,15 @@ io.on('connection', (socket) => {
     }
   }
 
+  const informHostAllPlayersSubmitted = (room: Room) => {
+    console.log(`All players in room ${room.code} have submitted their questions.`) 
+    const host = room.players.find(p => p.id === room.hostId);
+    if (!host) throw new Error('Host not found');
+    io.to(host.socketId).emit('all_players_have_submitted', {
+      all_submitted: true,
+    });
+  }
+
   const emitCurrentPQToAllPlayers = (room: Room) => {
     const currentPlayer = room.players[room.currentPlayerIdx]
     const currentPlayerName = currentPlayer.name
@@ -247,6 +276,8 @@ io.on('connection', (socket) => {
     const currentQuestion = availableQuestions[0];
     const currentQuestionText = currentQuestion.text
     const currentQuestionId = currentQuestion.id
+    roomManager.setCurrentPQ(room.code, currentPlayer, currentQuestion)
+
     io.to(room.code).emit('current_player_and_question', { room, 
                                                            currentPlayerId,
                                                            currentPlayerName,
@@ -264,10 +295,10 @@ io.on('connection', (socket) => {
     if (room) {
       room.gameState = "error";
     }
+    console.log(`Server Error: ${error}`)
     // Emit both the game state and the error message to all clients in the room
     io.to(roomCode).emit('server_error', {
       gameState: "error",
-      errorMessage: error 
     });
   }
 

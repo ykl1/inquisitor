@@ -9,6 +9,8 @@ export interface Room {
   totalPlayersThatSubmittedQuestions: number;
   currentRound: number;
   currentPlayerIdx: number;
+  currentAnsweringPlayer: Player | null;
+  currentQuestionBeingAnswered: Question | null;
 }
 
 export interface Player {

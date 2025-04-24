@@ -119,17 +119,13 @@ const GameRoom = () => {
       if (playerId && playerName && roomCode) {
         socket.emit('rejoin_room', {
           playerId: playerId,
-          playerName: playerName,
           roomCode: roomCode
         });
       }
       // set the current socket in state
       setCurrentSocket(socket);
       console.log(currentSocket)
-      // Get all current players upon new join
-      socket.on('rejoin_success', (playerName) => {
-        console.log('Successfully rejoined:', playerName);
-      });
+
       // Cleanup function runs when the GameRoom component unmounts
       return () => {
         socket.disconnect();
@@ -192,16 +188,14 @@ const GameRoom = () => {
     localStorage.setItem('all_submitted', returnObj["all_submitted"].toString());
   });
 
-  // Set Game State to finished
-  socket.on('finished_game_state', (returnObj) => {
-    setGameState(returnObj["room"].gameState)
-    localStorage.setItem('gameState', returnObj["room"].gameState);
+  socket.on('finished_state', (returnObj) => {
+    console.log('Successfully rejoined:', returnObj);
+    setGameState(returnObj["gameState"])
+    localStorage.setItem('gameState', returnObj["gameState"]);
   });
 
-  // Set Game State to error
   socket.on('server_error', (returnObj) => {
     console.log(returnObj["gameState"])
-    console.log(returnObj["errorMessage"])
     setGameState(returnObj["gameState"])
     localStorage.setItem('gameState', returnObj["gameState"]);
   });

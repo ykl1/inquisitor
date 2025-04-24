@@ -1,4 +1,4 @@
-import { Room, Player } from './types';
+import { Room, Player, Question } from './types';
 
 class RoomManager {
   private rooms: Map<string, Room> = new Map();
@@ -39,7 +39,9 @@ class RoomManager {
       questions: [],
       totalPlayersThatSubmittedQuestions: 0,
       currentRound: 0,
-      currentPlayerIdx: 0
+      currentPlayerIdx: 0,
+      currentAnsweringPlayer: null,
+      currentQuestionBeingAnswered: null
     };
 
     this.rooms.set(roomCode, room);
@@ -89,6 +91,14 @@ class RoomManager {
     if (room.players.length === 0 || playerId === room.hostId) {
       this.rooms.delete(roomCode);
     }
+  }
+
+  setCurrentPQ(roomCode: string, player: Player, question: Question): void {
+    const room = this.getRoom(roomCode);
+    if (!room) return;
+    console.log(`Setting current player: ${player.id} and current question: ${question.id} in room: ${roomCode}`)
+    room.currentAnsweringPlayer = player
+    room.currentQuestionBeingAnswered = question
   }
 
   // Given Constraint: Number of rounds (X) ≤ Number of players - 1
