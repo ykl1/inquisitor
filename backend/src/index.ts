@@ -221,11 +221,12 @@ io.on('connection', (socket) => {
           return;
         } else {
           room.currentPlayerIdx = 0
+          console.log(`Continuing with the next round: ${room.currentRound}, for room: ${roomCode}`)
         }
       } else if (room.currentPlayerIdx < room.players.length) {
-        console.log(`Continuing with the next player for round: ${room.rounds}`)
+        console.log(`Continuing with the next player for round: ${room.currentRound}, for room: ${roomCode}`)
       } else {
-        throw new Error("Current player idx is greater than number of players in room")
+        throw new Error(`Current player idx is greater than number of players in room: ${roomCode}`)
       }
       // Get current player and one unanswered question from their received questions
       // Send it to all users
