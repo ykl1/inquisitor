@@ -247,8 +247,9 @@ const GameRoom = () => {
   };
 
   // Send questions to the backend server. 
+  // TODO: Rethink the function name; since host is skipping question
   const answeredQuestion = () => {
-    console.log("Notifying server current player has answered their question")
+    console.log("Current player has answered their question, or host has skipped their question")
     socket.emit('answered_question', {
       roomCode: roomCode,
       question: currentQuestionBeingAnswered
@@ -410,6 +411,14 @@ const GameRoom = () => {
               <div key={currentQuestionBeingAnswered.id} className="text-xl font-semibold mb-4">
                 {currentQuestionBeingAnswered.text}
               </div>
+            )}
+            {isHost && currentPlayer?.id !== currentAnsweringPlayer?.id && (
+              <button
+              onClick={answeredQuestion}
+              className="mt-2 px-4 py-2 bg-rose-600 text-white rounded-md disabled:bg-gray-400 hover:bg-rose-700"
+              >
+                Next Question (Override)
+              </button>
             )}
             {currentPlayer?.id == currentAnsweringPlayer?.id && (
               <button

@@ -91,6 +91,7 @@ io.on('connection', (socket) => {
         } else if (gameState == "error") {
           socket.emit('server_error', { gameState });
         }
+        console.log(`Client has successfully rejoined room`)
       } else {
         throw new Error('Player not found in room');
       }
@@ -221,6 +222,10 @@ io.on('connection', (socket) => {
         } else {
           room.currentPlayerIdx = 0
         }
+      } else if (room.currentPlayerIdx < room.players.length) {
+        console.log(`Continuing with the next player for round: ${room.rounds}`)
+      } else {
+        throw new Error("Current player idx is greater than number of players in room")
       }
       // Get current player and one unanswered question from their received questions
       // Send it to all users
