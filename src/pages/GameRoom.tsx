@@ -261,7 +261,7 @@ const GameRoom = () => {
           <div className="flex justify-between items-center">
             <div>
               <RoomCodeDisplay roomCode={roomCode} />
-              <p className="text-gray-600">Player: {currentPlayer?.name}</p>
+              <p className="text-gray-600">Player: {currentPlayer?.name} {isHost && '(Host)'}</p>
               <p className="text-gray-600">Game State: {gameState}</p>
             </div>
             <div className="text-right">
@@ -377,11 +377,11 @@ const GameRoom = () => {
         {gameState === 'playing' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             {currentAnsweringPlayer != null && (
-              <h3 className="text-xl font-semibold mb-4">Someone in this room asked {currentAnsweringPlayer.name},</h3>
+              <h3 className="text-lg text-gray-600 mb-4">Someone in this room asked {currentAnsweringPlayer.name},</h3>
             )}
             {/* Display Current Selected Player and their current question here */}
             {currentQuestionBeingAnswered != null && (
-              <div key={currentQuestionBeingAnswered.id} className="text-xl font-semibold mb-4">
+              <div key={currentQuestionBeingAnswered.id} className="text-2xl font-bold mb-4 text-indigo-700">
                 {currentQuestionBeingAnswered.text}
               </div>
             )}
@@ -407,12 +407,30 @@ const GameRoom = () => {
         {gameState === 'finished' && (
           <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h3 className="text-xl font-semibold mb-4">Game Over</h3>
+            <div className="flex flex-col md:flex-row items-center gap-4">
               <button
                 onClick={handleHomeClick}
-                className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
+                className="w-full md:w-auto px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:bg-gray-400"
               >
                 Return to Home
               </button>
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLScZ0cSxMSAYNhJxcw757hBjZqvR38eNb3pSI1XQkwHX3DWwmQ/viewform?usp=header"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full md:w-auto px-4 py-2 border border-indigo-600 text-indigo-600 rounded-md hover:bg-indigo-50 transition flex items-center justify-center"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-5 h-5 mr-2"
+                >
+                  <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"></path>
+                </svg>
+                <span>Give Feedback</span>
+              </a>
+            </div>
           </div>
         )}
 
