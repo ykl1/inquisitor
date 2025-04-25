@@ -2,6 +2,7 @@ import { io } from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 // ifconfig | grep "inet " | grep -v 127.0.0.1 
+// paste after inet
 
 export const socket = io(SOCKET_URL, {
   autoConnect: false,

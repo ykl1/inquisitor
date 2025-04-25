@@ -46,11 +46,11 @@ const GameRoom = () => {
     const playerName = localStorage.getItem('playerName')
     const roomCode = localStorage.getItem('roomCode')
     const isHost = localStorage.getItem('isHost')
-    const storedTargets = localStorage.getItem('assignedTargets');
     const getHasSubmittedQuestions = localStorage.getItem('hasSubmittedQuestions')
     const hasSubmittedQuestions = toBoolean(getHasSubmittedQuestions)
     const allSubmitted = localStorage.getItem('all_submitted')
     // this will be [] before submission game state
+    const storedTargets = localStorage.getItem('assignedTargets');
     const assignedTargets = storedTargets ? JSON.parse(storedTargets) : [];
     const currAnsweringPlayerId = localStorage.getItem('currentAnsweringPlayerId');
     const currAnsweringPlayerName = localStorage.getItem('currentAnsweringPlayerName');
@@ -60,7 +60,6 @@ const GameRoom = () => {
 
     if (playerId && playerName && roomCode && isHost) {
       setIsHost(JSON.parse(isHost.toLowerCase()))
-
       const currPlayer: Player = {
         id: playerId,
         name: playerName,
@@ -132,7 +131,10 @@ const GameRoom = () => {
       };
     });
   }, []);
-  
+
+  /*
+    Socket On Events
+  */
   // Get all current players upon new join
   socket.on('emit_all_players', (currentPlayersInRoom) => {
     setPlayers(currentPlayersInRoom.players)
@@ -143,7 +145,7 @@ const GameRoom = () => {
     // Update gameState in useState and local storage to 'submitting'
     setGameState(roomObj["room"].gameState)
     localStorage.setItem('gameState', roomObj["room"].gameState);
-    
+    // TODO: This logic should be in the server side
     // Get the currentPlayer's assignedTargets and update 
     // local storage and currentPlayer useState
     const playerId = localStorage.getItem('playerId')
@@ -200,6 +202,9 @@ const GameRoom = () => {
     localStorage.setItem('gameState', returnObj["gameState"]);
   });
 
+  /*
+    Socket Emit Events
+  */
   const startSubmissionState = () => {
     socket.emit('host_start_submission_state', {
       roomCode: roomCode
@@ -211,14 +216,6 @@ const GameRoom = () => {
       roomCode: roomCode
     });
   };
-
-  const toBoolean = (value: string | null) => {
-    if (value) {
-      return value.toLowerCase() === "true";
-    } else {
-      return false
-    }
-  }
 
   // Send questions to the backend server. 
   const submitQuestions = (questionsMap: Record<string, string>) => {
@@ -257,6 +254,14 @@ const GameRoom = () => {
       question: currentQuestionBeingAnswered
     });
   };
+
+  const toBoolean = (value: string | null) => {
+    if (value) {
+      return value.toLowerCase() === "true";
+    } else {
+      return false
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 py-6 px-4 sm:px-6 lg:px-8">

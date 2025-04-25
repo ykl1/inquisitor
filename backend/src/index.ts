@@ -66,11 +66,10 @@ io.on('connection', (socket) => {
         socket.join(roomCode);
         // Retrieve the current gameState and update the client
         const gameState = room.gameState
-        if (gameState === "waiting") {
-          // Notify all players in the room of all current players
-          const players = room.players
-          emitAllPlayers(roomCode, players)
-        } else if (gameState === "submitting") {
+        // Emit all players to the rejoining client
+        const players = room.players
+        socket.emit('emit_all_players', { players });
+        if (gameState === "submitting") {
           // TODO: reduce to just necessary items to send to the client, instead of room
           socket.emit('submission_state', { room });
           if (room.players.length === room.totalPlayersThatSubmittedQuestions) {
