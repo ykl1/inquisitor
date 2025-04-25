@@ -23,6 +23,7 @@ const GameRoom = () => {
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
   const [currentRounds, setCurrentRounds] = useState(0);
+  const [submissionCount, setSubmissionCount] = useState<number>(0);
 
   // Minimum number of players in room is 3
   const hasEnoughPlayers = players.length >= 3;
@@ -151,6 +152,10 @@ const GameRoom = () => {
     });
   });
 
+  socket.on('submission_count_update', (returnObj) => {
+    setSubmissionCount(returnObj.submittedCount);
+  });
+
   socket.on('current_player_and_question', (returnObj) => {
     setGameState(returnObj["room"].gameState)
     localStorage.setItem('gameState', returnObj["room"].gameState);
@@ -265,7 +270,12 @@ const GameRoom = () => {
               <p className="text-gray-600">Game State: {gameState}</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-600">Players: {players.length}</p>
+              {gameState === 'waiting' && (
+                <p className="text-sm text-gray-600">Players: {players.length}</p>
+              )}
+              {gameState === 'submitting' && (
+                <p className="text-sm text-gray-600">Players submitted: {submissionCount} / {players.length}</p>
+              )}
               {isHost && gameState === 'waiting' && (
                 <>
                   {players.length <= currentRounds && (

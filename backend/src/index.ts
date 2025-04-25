@@ -75,6 +75,10 @@ io.on('connection', (socket) => {
           if (room.players.length === room.totalPlayersThatSubmittedQuestions) {
             informHostAllPlayersSubmitted(room)
           }
+          // Update room players of number of players that have submitted questions
+          socket.emit('submission_count_update', {
+            submittedCount: room.totalPlayersThatSubmittedQuestions
+          });
         } else if (gameState === "playing") {
           // If reconnect during playing state, send current answering player and question to client
           const currentPlayerId = room.currentAnsweringPlayer?.id
@@ -147,7 +151,12 @@ io.on('connection', (socket) => {
 
       // Increment totalPlayersThatSubmittedQuestions for the given room
       room.totalPlayersThatSubmittedQuestions += 1
-    
+
+      // Update room players of number of players that have submitted questions
+      io.to(roomCode).emit('submission_count_update', {
+        submittedCount: room.totalPlayersThatSubmittedQuestions
+      });
+
       // Iterate over the sent questions and add them to the targetPlayers' receivedQuestions field
       questions.forEach(question => {
         const player = room.players.find(p => p.id === question.targetPlayerId);
