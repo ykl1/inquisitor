@@ -11,6 +11,7 @@ export interface Room {
   currentPlayerIdx: number;
   currentAnsweringPlayer: Player | null;
   currentQuestionBeingAnswered: Question | null;
+  answeredQuestionIds: Set<string>;
 }
 
 export interface Player {

@@ -10,8 +10,9 @@ export interface Room {
   totalPlayersThatSubmittedQuestions: number;
   currentRound: number;
   currentPlayerIdx: number;
-  currentAnsweringPlayer: Player;
-  currentQuestionBeingAnswered: Question;
+  currentAnsweringPlayer: Player | null;
+  currentQuestionBeingAnswered: Question | null;
+  answeredQuestionIds: Set<string>;
 }
 
 export interface Player {

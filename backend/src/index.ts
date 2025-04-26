@@ -210,6 +210,39 @@ io.on('connection', (socket) => {
     try {
       const room = roomManager.getRoom(roomCode);
       if (!room) throw new Error('Room not found');
+
+      // Initialize tracking set if needed
+      if (!room.answeredQuestionIds) {
+        room.answeredQuestionIds = new Set();
+      }
+
+      // Check if question was already answered
+      if (room.answeredQuestionIds.has(question.id)) {
+        console.log(`Question ${question.id} already answered, ignoring duplicate request`);
+        // Update user with current player and question being answered
+        const currentPlayerId = room.currentAnsweringPlayer?.id
+        const currentPlayerName = room.currentAnsweringPlayer?.name
+        const currentQuestionId = room.currentQuestionBeingAnswered?.id
+        const currentQuestionText = room.currentQuestionBeingAnswered?.text
+        const gameState = room.gameState
+        const totalRounds = room.rounds
+        const currentRound = room.currentRound
+        const currentPlayerIdx = room.currentPlayerIdx
+        socket.emit('current_player_and_question', { gameState,
+                                                     totalRounds,
+                                                     currentRound,
+                                                     currentPlayerIdx,
+                                                     currentPlayerId,
+                                                     currentPlayerName,
+                                                     currentQuestionId,
+                                                     currentQuestionText });
+        return; // Silently ignore duplicates
+      }
+
+      // Put question id into the room's set of answeredQuestionIds
+      room.answeredQuestionIds.add(question.id);
+
+      console.log(`Answered ids: ${Array.from(room.answeredQuestionIds).join(', ')}`);
   
       // Set the current asked question of the current player as answered
       const currentPlayer = room.players[room.currentPlayerIdx]

@@ -41,7 +41,8 @@ class RoomManager {
       currentRound: 0,
       currentPlayerIdx: 0,
       currentAnsweringPlayer: null,
-      currentQuestionBeingAnswered: null
+      currentQuestionBeingAnswered: null,
+      answeredQuestionIds: new Set()
     };
 
     this.rooms.set(roomCode, room);

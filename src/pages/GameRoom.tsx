@@ -412,8 +412,8 @@ const GameRoom = () => {
             )}
             {isHost && currentPlayer?.id !== currentAnsweringPlayer?.id && (
               <button
-              onClick={answeredQuestion}
-              className="mt-2 px-4 py-2 bg-rose-600 text-white rounded-md disabled:bg-gray-400 hover:bg-rose-700"
+                onClick={answeredQuestion}
+                className="mt-2 px-4 py-2 bg-rose-600 text-white rounded-md disabled:bg-gray-400 hover:bg-rose-700"
               >
                 Next Question (Override)
               </button>
