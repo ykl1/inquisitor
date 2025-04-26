@@ -283,7 +283,7 @@ const GameRoom = () => {
                 <p className="text-sm text-gray-600">Players: {players.length}</p>
               )}
               {gameState === 'submitting' && (
-                <p className="text-sm text-gray-600">Players submitted: {submissionCount} / {players.length}</p>
+                <p className="text-sm text-gray-600">Submitted: {submissionCount} / {players.length}</p>
               )}
               {gameState === 'playing' && (
                 <>
