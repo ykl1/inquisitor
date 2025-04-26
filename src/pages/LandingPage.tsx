@@ -53,7 +53,7 @@ const LandingPage = () => {
             </li>
             <li className="flex items-start">
               <span className="mr-2"></span>
-              <span>🎉 Get real, laugh hard, and uncover fun truths with your friends.</span>
+              <span>🎉 Get real, laugh hard, and uncover fun truths with your friends</span>
             </li>
           </ul>
         </div>
