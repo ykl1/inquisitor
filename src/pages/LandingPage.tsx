@@ -4,7 +4,10 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto text-center">
-        <h1 className="text-5xl font-bold text-white mb-8">Inquisitor</h1>
+        <h1 className="text-5xl font-bold text-white mb-8 flex items-center justify-center">
+          <span>Inquisitor</span>
+          <span className="text-sm align-top ml-2">(beta)</span>
+        </h1>
         <p className="text-xl text-white mb-12">
           The ultimate party game of anonymous questions and daring answers
         </p>

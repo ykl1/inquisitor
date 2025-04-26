@@ -23,6 +23,7 @@ io.on('connection', (socket) => {
       const room = roomManager.createRoom(playerName, rounds, enableGuessing, socket.id);
       socket.join(room.code);
       callback({ success: true, room });
+      console.log(`Room: ${room.code} has been created`)
 
       // Notify all players in the room of all current players
       const players = room.players
@@ -46,6 +47,7 @@ io.on('connection', (socket) => {
         Array.from(io.sockets.adapter.rooms.get(roomCode) || []));
 
       callback({ success: true, room, player });
+      console.log(`Player has joined room: ${room.code}`)
     } catch (error) {
       callback({ success: false, error: error.message });
     }
@@ -121,6 +123,11 @@ io.on('connection', (socket) => {
     try {
       const room = roomManager.getRoom(roomCode);
       if (!room) throw new Error('Room not found');
+      // Gracefully handle edge case where host emits event multiple times
+      if (room.gameState === "submitting") {
+        console.log(`Room: ${roomCode} is already in submitting state`)
+        return;
+      }
       room.gameState = "submitting"
 
       // Retry assignBalancedTargets 3 times if it fails
@@ -154,6 +161,12 @@ io.on('connection', (socket) => {
       // Update player to indicate they have submitted questions
       const asker = room.players.find(p => p.id === player.id);
       if (!asker) throw new Error('Asker not found');
+      // Gracefully handle if player quickly clicks submit button multiple times
+      if (asker.hasSubmittedQuestions) {
+        console.log(`Player (${asker.id}) attempted to submit questions more than once`);
+        return;
+      }
+
       asker.hasSubmittedQuestions = true
 
       // Increment totalPlayersThatSubmittedQuestions for the given room
@@ -188,7 +201,11 @@ io.on('connection', (socket) => {
     try {
       const room = roomManager.getRoom(roomCode);
       if (!room) throw new Error('Room not found');
-  
+      // Handle edge case if host emits event multiple times
+      if (room.gameState === "playing") {
+        console.log(`Room ${roomCode} is already in playing state. Continue playing`);
+        return;
+      }
       // Update player to indicate they have submitted questions
       room.gameState = "playing"
   
@@ -216,7 +233,7 @@ io.on('connection', (socket) => {
         room.answeredQuestionIds = new Set();
       }
 
-      // Check if question was already answered
+      // Gracefully handle edge case, checking if question was already answered
       if (room.answeredQuestionIds.has(question.id)) {
         console.log(`Question ${question.id} already answered, ignoring duplicate request`);
         // Update user with current player and question being answered
@@ -343,7 +360,8 @@ io.on('connection', (socket) => {
                                                            currentPlayerId,
                                                            currentPlayerName,
                                                            currentQuestionId, 
-                                                           currentQuestionText });                                     
+                                                           currentQuestionText });
+    console.log(`Emitted Current Player and Question to all players in room: ${room.code}`)                                    
   }
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {
