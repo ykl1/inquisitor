@@ -272,7 +272,9 @@ const GameRoom = () => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center">
             <div>
-              <RoomCodeDisplay roomCode={roomCode} />
+              {roomCode &&
+                <RoomCodeDisplay roomCode={roomCode} />
+              }
               <p className="text-gray-600">Player: {currentPlayer?.name} {isHost && '(Host)'}</p>
               <p className="text-gray-600">Game State: {gameState}</p>
             </div>

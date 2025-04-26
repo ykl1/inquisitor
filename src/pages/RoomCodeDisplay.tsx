@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const RoomCodeDisplay = ({ roomCode }) => {
+const RoomCodeDisplay = ({ roomCode }: { roomCode: string }) => {
   const [copied, setCopied] = useState(false);
   
   const copyToClipboard = async () => {
