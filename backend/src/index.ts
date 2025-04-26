@@ -85,7 +85,14 @@ io.on('connection', (socket) => {
           const currentPlayerName = room.currentAnsweringPlayer?.name
           const currentQuestionId = room.currentQuestionBeingAnswered?.id
           const currentQuestionText = room.currentQuestionBeingAnswered?.text
-          socket.emit('current_player_and_question', { room,
+          const gameState = room.gameState
+          const totalRounds = room.rounds
+          const currentRound = room.currentRound
+          const currentPlayerIdx = room.currentPlayerIdx
+          socket.emit('current_player_and_question', { gameState,
+                                                       totalRounds,
+                                                       currentRound,
+                                                       currentPlayerIdx,
                                                        currentPlayerId,
                                                        currentPlayerName,
                                                        currentQuestionId,
@@ -278,7 +285,8 @@ io.on('connection', (socket) => {
   }
 
   const emitCurrentPQToAllPlayers = (room: Room) => {
-    const currentPlayer = room.players[room.currentPlayerIdx]
+    const currentPlayerIdx = room.currentPlayerIdx
+    const currentPlayer = room.players[currentPlayerIdx]
     const currentPlayerName = currentPlayer.name
     const currentPlayerId = currentPlayer.id
 
@@ -287,16 +295,22 @@ io.on('connection', (socket) => {
       // TODO: For this edge case, perhaps skip this player instead?
       throw new Error('Player has no unanswered questions');
     }
+    const gameState = room.gameState
+    const totalRounds = room.rounds
+    const currentRound = room.currentRound
     const currentQuestion = availableQuestions[0];
     const currentQuestionText = currentQuestion.text
     const currentQuestionId = currentQuestion.id
     roomManager.setCurrentPQ(room.code, currentPlayer, currentQuestion)
 
-    io.to(room.code).emit('current_player_and_question', { room, 
+    io.to(room.code).emit('current_player_and_question', { gameState,
+                                                           totalRounds,
+                                                           currentRound,
+                                                           currentPlayerIdx,
                                                            currentPlayerId,
                                                            currentPlayerName,
                                                            currentQuestionId, 
-                                                           currentQuestionText });
+                                                           currentQuestionText });                                     
   }
 
   const emitAllPlayers = (roomCode: string, players: Player[]) => {

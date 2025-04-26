@@ -22,7 +22,9 @@ const GameRoom = () => {
   const [currentQuestionBeingAnswered, setCurrentQuestionBeingAnswered] = useState<CurrentQuestionBeingAnswered | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [hasEveryoneSubmitted, setHasEveryoneSubmitted] = useState(false);
-  const [currentRounds, setCurrentRounds] = useState(0);
+  const [totalRounds, setTotalRounds] = useState(0);
+  const [currentRound, setCurrentRound] = useState(0);
+  const [answeringPlayerCount, setAnsweringPlayerCount] = useState(0);
   const [submissionCount, setSubmissionCount] = useState<number>(0);
 
   // Minimum number of players in room is 3
@@ -73,7 +75,7 @@ const GameRoom = () => {
 
     if (gameState === "waiting") {
       if (currNumberOfRounds) {
-        setCurrentRounds(Number(currNumberOfRounds))
+        setTotalRounds(Number(currNumberOfRounds))
       }
       socket.emit('get_current_players', { roomCode });
     }
@@ -84,10 +86,10 @@ const GameRoom = () => {
     }
     // In case player refreshes page during playing state, the current question being answered
     // and current player answering the question persists in display.
-    if (gameState === "playing" && 
-        currAnsweringPlayerId && 
-        currAnsweringPlayerName && 
-        currQuestionBeingAnsweredId && 
+    if (gameState === "playing" &&
+        currAnsweringPlayerId &&
+        currAnsweringPlayerName &&
+        currQuestionBeingAnsweredId &&
         currQuestionBeingAnsweredName) {
       const currentAnsweringPlayer: CurrentAnsweringPlayer = {
         id: currAnsweringPlayerId,
@@ -156,9 +158,10 @@ const GameRoom = () => {
     setSubmissionCount(returnObj.submittedCount);
   });
 
+  // TODO: May be able to remove the localStorage here, as we fetch server state upon refresh
   socket.on('current_player_and_question', (returnObj) => {
-    setGameState(returnObj["room"].gameState)
-    localStorage.setItem('gameState', returnObj["room"].gameState);
+    setGameState(returnObj["gameState"])
+    localStorage.setItem('gameState', returnObj["gameState"]);
 
     const currentAnsweringPlayer: CurrentAnsweringPlayer = {
       id: returnObj["currentPlayerId"],
@@ -175,6 +178,10 @@ const GameRoom = () => {
     setCurrentQuestionBeingAnswered(currentQuestionBeingAnswered)
     localStorage.setItem('currentQuestionBeingAnsweredId', returnObj["currentQuestionId"]);
     localStorage.setItem('currentQuestionBeingAnsweredName', returnObj["currentQuestionText"]);
+
+    setCurrentRound(returnObj["currentRound"])
+    setTotalRounds(returnObj["totalRounds"])
+    setAnsweringPlayerCount(returnObj["currentPlayerIdx"] + 1)
   });
 
   // Once all players have submitted questions, server will send event to host
@@ -276,16 +283,22 @@ const GameRoom = () => {
               {gameState === 'submitting' && (
                 <p className="text-sm text-gray-600">Players submitted: {submissionCount} / {players.length}</p>
               )}
+              {gameState === 'playing' && (
+                <>
+                  <p className="text-sm text-gray-600">Round: {currentRound} / {totalRounds} </p>
+                  <p className="text-sm text-gray-600">Player: {answeringPlayerCount} / {players.length} </p>
+                </>
+              )}
               {isHost && gameState === 'waiting' && (
                 <>
-                  {players.length <= currentRounds && (
+                  {players.length <= totalRounds && (
                     <p className="text-red-400 mt-1">
-                      Party needs {currentRounds + 1}+ players
+                      Party needs {totalRounds + 1}+ players
                     </p>
                   )}
                   <button
                     onClick={startSubmissionState}
-                    disabled={!hasEnoughPlayers || !(currentRounds < players.length)}
+                    disabled={!hasEnoughPlayers || !(totalRounds < players.length)}
                     className="mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md disabled:bg-gray-400"
                   >
                     Start Submitting
