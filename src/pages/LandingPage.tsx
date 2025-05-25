@@ -32,7 +32,7 @@ const LandingPage = () => {
           <ul className="text-left space-y-2">
             <li className="flex items-start">
               <span className="mr-2">1.</span>
-              <span>Create a room or join one using a code (3–15 players)</span>
+              <span>Create a room or join one using a code (3–25 players)</span>
             </li>
             <li className="flex items-start">
               <span className="mr-2">2.</span>

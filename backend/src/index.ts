@@ -5,7 +5,7 @@ import { roomManager } from './roomManager';
 import { Player, Question, Room } from './types';
 
 const app = express();
-const MAX_PLAYER_LIMIT = 15;
+const MAX_PLAYER_LIMIT = 25;
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
